@@ -380,7 +380,7 @@ export default function Page() {
 
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col">
-      <main className="mx-auto flex max-w-xl flex-1 flex-col items-center gap-6 px-4 py-14">
+      <main className="mx-auto flex max-w-3xl flex-1 flex-col items-center gap-6 px-4 py-14">
         <header className="flex w-full flex-col gap-3">
           <div className="flex items-center justify-end">
             <div className="flex items-center gap-2">
