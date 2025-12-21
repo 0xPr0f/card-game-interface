@@ -134,6 +134,14 @@ export function NewHome() {
     return addr.length > 12 ? `${addr.slice(0, 6)}…${addr.slice(-4)}` : addr
   }
 
+  useEffect(() => {
+    if (showCreate) {
+      setTimeout(() => {
+        document.getElementById("create-game-section")?.scrollIntoView({ behavior: "smooth", block: "center" })
+      }, 100)
+    }
+  }, [showCreate])
+
   return (
     <div className="min-h-[100svh] bg-gradient-to-b from-background to-secondary/30 text-foreground flex flex-col">
        <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -185,7 +193,7 @@ export function NewHome() {
 
       <main className="flex-1 container mx-auto px-4 py-8 space-y-10">
         {/* Hero Section */}
-        <section className="relative flex flex-col items-center gap-8 py-10 text-center lg:py-16">
+        <section className="relative flex flex-col items-center gap-8 py-10 text-center lg:py-16 overflow-hidden">
           <div className="absolute top-0 right-0 -z-10 opacity-10 blur-3xl transform translate-x-1/4 -translate-y-1/4">
              <div className="mr-[-200px] h-[300px] w-[300px] rounded-full bg-primary/50" />
           </div>
@@ -194,15 +202,15 @@ export function NewHome() {
           </div>
 
           <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
-             <div className="relative h-32 w-48 mx-auto rotate-[-5deg] hover:rotate-0 transition-transform duration-500 mb-6">
-                <div className="absolute top-0 left-0 transform -rotate-12 translate-x-[-20px] shadow-lg">
-                    <WhotCard variant="back" className="w-24 border-2 border-white/20" />
+             <div className="relative h-40 w-64 mx-auto rotate-[-5deg] hover:rotate-0 transition-transform duration-500 mb-8">
+                <div className="absolute top-0 left-0 transform -rotate-12 translate-x-[-30px] drop-shadow-2xl transition-transform hover:-translate-y-2">
+                    <WhotCard variant="back" className="w-32 shadow-none rounded-[8px]" />
                 </div>
-                <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-4 shadow-xl z-10">
-                    <WhotCard shape="Whot" number={20} className="w-28 border-2 border-white/20" />
+                <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-6 z-10 drop-shadow-2xl transition-transform hover:-translate-y-2">
+                    <WhotCard shape="Whot" number={20} className="w-36 shadow-none border-[1px] border-white/10 rounded-[8px]" />
                 </div>
-                <div className="absolute top-0 right-0 transform rotate-12 translate-x-[20px] shadow-lg">
-                    <WhotCard variant="back" className="w-24 border-2 border-white/20" />
+                <div className="absolute top-0 right-0 transform rotate-12 translate-x-[30px] drop-shadow-2xl transition-transform hover:-translate-y-2">
+                    <WhotCard variant="back" className="w-32 shadow-none rounded-[8px]" />
                 </div>
              </div>
              <h1 className="text-4xl font-extrabold tracking-tight sm:text-5xl md:text-6xl lg:text-7xl">
@@ -228,11 +236,11 @@ export function NewHome() {
 
         {/* Create Game Modal / Section */}
         {showCreate && (
-             <section className="mx-auto max-w-lg animate-in zoom-in-95 duration-300">
+             <section id="create-game-section" className="mx-auto max-w-lg animate-in zoom-in-95 duration-300">
                <Card className="border-primary/20 shadow-xl overflow-hidden backdrop-blur supports-[backdrop-filter]:bg-background/80 relative">
                  <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-primary to-transparent opacity-50" />
                  <CardHeader>
-                   <CardTitle>Create Table</CardTitle>
+                   <CardTitle>Create Game</CardTitle>
                    <CardDescription>Setup a new encrypted game lobby</CardDescription>
                  </CardHeader>
                  <CardContent className="space-y-4">
@@ -297,7 +305,7 @@ export function NewHome() {
                         <Button variant="outline" className="flex-1" onClick={() => setShowCreate(false)}>Cancel</Button>
                         <Button className="flex-1 shadow-md shadow-primary/20" onClick={handleCreateGame} disabled={!canTransact || createGame.isPending}>
                             {createGame.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                            Create Table
+                            Create Game
                         </Button>
                     </div>
                  </CardContent>
@@ -309,7 +317,7 @@ export function NewHome() {
         <section id="games-feed" className="mx-auto max-w-3xl space-y-6">
             <div className="flex items-center justify-between">
                 <div>
-                     <h2 className="text-2xl font-bold tracking-tight">Active Tables</h2>
+                     <h2 className="text-2xl font-bold tracking-tight">Created Games</h2>
                      <p className="text-muted-foreground">Join an existing game to start playing.</p>
                 </div>
                 <Card className="p-1 px-3 bg-secondary/30 border-0 flex items-center gap-2">
@@ -385,7 +393,7 @@ export function NewHome() {
                     <div className="col-span-full py-12 text-center rounded-xl border border-dashed bg-secondary/5">
                         <Trophy className="h-10 w-10 text-muted-foreground mx-auto mb-3 opacity-50" />
                         <h3 className="text-lg font-medium">No active games</h3>
-                        <p className="text-muted-foreground">Be the first to start a new table!</p>
+                        <p className="text-muted-foreground">Be the first to start a new game!</p>
                         <Button variant="link" onClick={() => setShowCreate(true)}>Create Game</Button>
                     </div>
                 )}
