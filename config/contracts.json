@@ -1,0 +1,12 @@
+{
+  "31337": {
+    "cardEngine": "0x5005213025865bf26e73526F5CddE3f8e2fb4fDA",
+    "whotRuleset": "0x8b3116CdD7544928D90050dE5ecbdDfaeF9a87cE",
+    "whotManager": "0xc1B99A2c5EF269D1f0F60F47f4d9d71Ff8cEd15A"
+  },
+  "11155111": {
+    "cardEngine": "0x572FD97075c572087fF387bBA623a9B6D54d492C",
+    "whotRuleset": "0x02707bBB7229721e841Ebeecb95943eef340b2Be",
+    "whotManager": "0x7066Ec9d108d3c6F45d50f53EbBeE1188d058BbB"
+  }
+}
