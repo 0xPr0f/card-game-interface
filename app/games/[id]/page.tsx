@@ -1,10 +1,19 @@
 "use client"
 
 import Link from "next/link"
-import { useEffect, useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useParams } from "next/navigation"
-import { useQuery } from "@tanstack/react-query"
-import { encodeAbiParameters, parseEventLogs, toHex, type Address } from "viem"
+import { useQuery, useQueryClient } from "@tanstack/react-query"
+import {
+  BaseError,
+  ContractFunctionRevertedError,
+  decodeErrorResult,
+  encodeAbiParameters,
+  parseEventLogs,
+  toHex,
+  type Address,
+  type Hex,
+} from "viem"
 import { useAccount, usePublicClient, useSignTypedData } from "wagmi"
 import { ArrowLeft, Loader2 } from "lucide-react"
 import { toast } from "sonner"
@@ -29,6 +38,7 @@ import { activeChain } from "@/config/web3Shared"
 import { RELAYER_ADDRESS } from "@/config/relayer"
 import { relayGameAction } from "@/lib/relay"
 import { getFheKeypair, saveFheKeypair } from "@/lib/fheKeys"
+import { exportBurner, onBurnerUpdated } from "@/lib/burner"
 
 type GameData = {
   gameCreator: string
@@ -60,6 +70,32 @@ const ACTIONS = [
   { value: 2, label: "Draw" },
 ] as const
 
+const GAME_ERROR_ABI = [
+  { type: "error", name: "PlayerAlreadyInGame", inputs: [] },
+  { type: "error", name: "PlayerNotInGame", inputs: [] },
+  { type: "error", name: "GameAlreadyStarted", inputs: [] },
+  { type: "error", name: "GameNotStarted", inputs: [] },
+  { type: "error", name: "InvalidPlayerAddress", inputs: [{ name: "addr", type: "address" }] },
+  { type: "error", name: "ResolvePendingAction", inputs: [] },
+  { type: "error", name: "NotProposedPlayer", inputs: [{ name: "player", type: "address" }] },
+  { type: "error", name: "CannotStartGame", inputs: [] },
+  { type: "error", name: "PlayersLimitExceeded", inputs: [] },
+  { type: "error", name: "PlayersLimitNotMet", inputs: [] },
+  { type: "error", name: "CannotBootOutPlayer", inputs: [{ name: "player", type: "address" }] },
+  { type: "error", name: "InvalidGameAction", inputs: [{ name: "action", type: "uint8" }] },
+  { type: "error", name: "PlayerAlreadyCommittedAction", inputs: [] },
+  { type: "error", name: "NoCommittedAction", inputs: [] },
+  { type: "error", name: "InvalidPlayerIndex", inputs: [] },
+  { type: "error", name: "CardSizeNotSupported", inputs: [] },
+  { type: "error", name: "CardDeckSizeTooSmall", inputs: [] },
+  { type: "error", name: "CardIndexOutOfBounds", inputs: [{ name: "cardIndex", type: "uint256" }] },
+  { type: "error", name: "CardIndexIsEmpty", inputs: [{ name: "cardIndex", type: "uint256" }] },
+  { type: "error", name: "AsyncHandler_InvalidCommitmentHash", inputs: [] },
+  { type: "error", name: "PlayerCardDoesNotMatchCallCard", inputs: [] },
+  { type: "error", name: "DefenseNotEnabled", inputs: [] },
+  { type: "error", name: "InvalidAction", inputs: [] },
+] as const
+
 const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000"
 const RELAYER_TOGGLE_KEY = "whot-relayer-enabled"
 const VIEW_MODE_KEY = "whot-view-mode"
@@ -87,6 +123,60 @@ const parseCardIndex = (raw: string): bigint | null => {
 const formatAddr = (addr: string) => {
   if (!addr) return "—"
   return addr.length > 12 ? `${addr.slice(0, 6)}…${addr.slice(-4)}` : addr
+}
+
+const formatGameError = (name: string, args?: readonly unknown[]) => {
+  switch (name) {
+    case "PlayerAlreadyCommittedAction":
+      return "You already committed a move. Execute or break it."
+    case "NoCommittedAction":
+      return "No committed move found."
+    case "GameNotStarted":
+      return "Game not started yet."
+    case "InvalidPlayerAddress":
+      return "You are not the current player for this turn."
+    case "PlayerNotInGame":
+      return "Your address is not in this game."
+    case "CardIndexIsEmpty":
+      return "That card slot is empty."
+    case "CardIndexOutOfBounds":
+      return "Card index is out of range."
+    case "PlayerCardDoesNotMatchCallCard":
+      return "Card does not match the call card."
+    case "DefenseNotEnabled":
+      return "Defend is not enabled for this move."
+    case "AsyncHandler_InvalidCommitmentHash":
+      return "Commitment proof mismatch. Break and re-commit."
+    case "InvalidAction":
+    case "InvalidGameAction":
+      return "Invalid action for this turn."
+    default:
+      if (args?.length) return `${name}(${args.join(", ")})`
+      return name
+  }
+}
+
+const describeViemError = (err: unknown) => {
+  if (err instanceof BaseError) {
+    const revertError = err.walk(
+      (inner) => inner instanceof ContractFunctionRevertedError,
+    ) as ContractFunctionRevertedError | null
+    if (revertError?.data?.errorName) {
+      return formatGameError(revertError.data.errorName, revertError.data.args)
+    }
+    const raw = revertError?.raw
+    if (raw) {
+      try {
+        const decoded = decodeErrorResult({ abi: GAME_ERROR_ABI, data: raw as Hex })
+        return formatGameError(decoded.errorName, decoded.args)
+      } catch {
+        // ignore decode failures
+      }
+    }
+    return err.shortMessage || err.message
+  }
+  if (err instanceof Error) return err.message
+  return String(err)
 }
 
 const clamp = (value: number, min: number, max: number) => Math.min(Math.max(value, min), max)
@@ -312,6 +402,12 @@ export default function GamePage() {
   const [viewMode, setViewMode] = useState<ViewMode>("fun")
   const [isMounted, setIsMounted] = useState(false)
   const [handFanOpen, setHandFanOpen] = useState(false)
+  const [handStale, setHandStale] = useState(false)
+  const [cachedCallCard, setCachedCallCard] = useState(0)
+  const [burnerAddress, setBurnerAddress] = useState<string | null>(null)
+  const [lastHandSignature, setLastHandSignature] = useState<string | null>(null)
+  const autoRevealRef = useRef(false)
+  const queryClient = useQueryClient()
 
   useEffect(() => {
     setIsMounted(true)
@@ -322,6 +418,25 @@ export default function GamePage() {
     const stored = window.localStorage.getItem(RELAYER_TOGGLE_KEY)
     if (stored !== null) {
       setRelayerEnabled(stored === "true")
+    }
+  }, [])
+
+  useEffect(() => {
+    if (typeof window === "undefined") return
+    const refresh = () => {
+      try {
+        const burner = exportBurner()
+        setBurnerAddress(burner?.address?.toLowerCase() ?? null)
+      } catch {
+        setBurnerAddress(null)
+      }
+    }
+    refresh()
+    const off = onBurnerUpdated(refresh)
+    window.addEventListener("storage", refresh)
+    return () => {
+      off()
+      window.removeEventListener("storage", refresh)
     }
   }, [])
 
@@ -359,6 +474,14 @@ export default function GamePage() {
     return () => cancelAnimationFrame(id)
   }, [myHand, handUpdatedAt])
 
+  useEffect(() => {
+    setCachedCallCard(0)
+    setMyHand(null)
+    setHandUpdatedAt(null)
+    setHandStale(false)
+    setLastHandSignature(null)
+  }, [gameKey])
+
   const { data: gameData, isLoading: loadingGame } = useQuery({
     queryKey: ["game-data", chainId, gameKey],
     enabled: Boolean(publicClient && gameId),
@@ -386,6 +509,13 @@ export default function GamePage() {
       } satisfies GameData
     },
   })
+
+  useEffect(() => {
+    if (!gameData) return
+    if (gameData.callCard && gameData.callCard !== 0) {
+      setCachedCallCard(gameData.callCard)
+    }
+  }, [gameData])
 
   const { data: players = [], isLoading: loadingPlayers } = useQuery({
     queryKey: ["players", chainId, gameKey, gameData?.maxPlayers ?? 0],
@@ -445,6 +575,29 @@ export default function GamePage() {
     gameData.playersLeftToJoin === 0
   const needsCommit = action === 0 || action === 1
   const canRevealHand = Boolean(gameStarted && me && isConnected && fheStatus === "ready")
+  const revealBlockReason = useMemo(() => {
+    if (isRevealingHand) return "Reveal in progress"
+    if (!isConnected) return "Connect your wallet"
+    if (!me) return "Join the game to reveal"
+    if (!gameStarted) return "Game not started yet"
+    if (fheStatus !== "ready") return "FHE relayer not ready"
+    return null
+  }, [fheStatus, gameStarted, isConnected, isRevealingHand, me])
+  const callCardOnChain = gameData?.callCard ?? 0
+  const callCardDisplay = callCardOnChain || cachedCallCard
+  const callCardIsCached = callCardOnChain === 0 && cachedCallCard !== 0
+  const callCardHint = callCardDisplay
+    ? callCardIsCached
+      ? "Last played card"
+      : "Match the call card"
+    : "No call card yet"
+  const isBurnerConnected = Boolean(
+    burnerAddress && address && burnerAddress === address.toLowerCase(),
+  )
+  const currentHandSignature = useMemo(() => {
+    if (!me) return null
+    return `${me.deckMap.toString()}-${me.hand0.toString()}-${me.hand1.toString()}`
+  }, [me?.deckMap, me?.hand0, me?.hand1])
   const hasPendingCommit = Boolean(pendingProofData)
   const actionLabel = ACTIONS.find((item) => item.value === action)?.label ?? "Play"
   const pendingActionLabel =
@@ -493,7 +646,7 @@ export default function GamePage() {
     return 0n
   }
 
-  const handleRevealHand = async () => {
+  const handleRevealHand = useCallback(async () => {
     if (!gameData || !me || !address) return
     if (!isConnected) {
       toast.error("Connect your wallet to decrypt your hand")
@@ -544,6 +697,8 @@ export default function GamePage() {
       const cards = decodeHandCards(me.deckMap, clear0, clear1)
       setMyHand(cards)
       setHandUpdatedAt(Date.now())
+      setHandStale(false)
+      setLastHandSignature(`${me.deckMap.toString()}-${me.hand0.toString()}-${me.hand1.toString()}`)
     } catch (err) {
       const message = err instanceof Error ? err.message : "Hand decrypt failed"
       setHandError(message)
@@ -551,7 +706,47 @@ export default function GamePage() {
     } finally {
       setIsRevealingHand(false)
     }
-  }
+  }, [
+    address,
+    gameData,
+    isConnected,
+    me,
+    fheStatus,
+    chainId,
+    contracts.cardEngine,
+    generateKeypair,
+    saveFheKeypair,
+    getFheKeypair,
+    createEip712,
+    signTypedDataAsync,
+    userDecrypt,
+  ])
+
+  useEffect(() => {
+    if (!isBurnerConnected) return
+    if (!canRevealHand || isRevealingHand) return
+    if (!currentHandSignature || currentHandSignature === lastHandSignature) return
+    if (!handStale && myHand?.length) return
+    if (autoRevealRef.current) return
+    autoRevealRef.current = true
+    const id = setTimeout(async () => {
+      try {
+        await handleRevealHand()
+      } finally {
+        autoRevealRef.current = false
+      }
+    }, 600)
+    return () => clearTimeout(id)
+  }, [
+    handStale,
+    myHand?.length,
+    isBurnerConnected,
+    canRevealHand,
+    isRevealingHand,
+    currentHandSignature,
+    lastHandSignature,
+    handleRevealHand,
+  ])
 
   const handleCommit = async (indexOverride?: bigint, actionOverride?: number) => {
     if (!gameId) return
@@ -609,7 +804,7 @@ export default function GamePage() {
       setPendingAction(commitAction)
       toast.success("Move committed", { description: "Decryption proof ready. Execute your action." })
     } catch (err) {
-      toast.error("Commit failed", { description: err instanceof Error ? err.message : "Unknown error" })
+      toast.error("Commit failed", { description: describeViemError(err) })
     } finally {
       setIsDecrypting(false)
     }
@@ -637,9 +832,16 @@ export default function GamePage() {
       setPendingProofData(null)
       setPendingCardIndex(null)
       setPendingAction(null)
+      if (myHand?.length) {
+        setMyHand(null)
+        setHandUpdatedAt(null)
+        setHandStale(true)
+      }
+      queryClient.invalidateQueries({ queryKey: ["game-data", chainId, gameKey] })
+      queryClient.invalidateQueries({ queryKey: ["players", chainId, gameKey] })
       toast.success("Execute sent", { description: "Watch for MoveExecuted." })
     } catch (err) {
-      toast.error("Execute failed", { description: err instanceof Error ? err.message : "Unknown error" })
+      toast.error("Execute failed", { description: describeViemError(err) })
     }
   }
 
@@ -684,9 +886,16 @@ export default function GamePage() {
         proofData: "0x",
         extraData: "0x",
       })
+      if (myHand?.length) {
+        setMyHand(null)
+        setHandUpdatedAt(null)
+        setHandStale(true)
+      }
+      queryClient.invalidateQueries({ queryKey: ["game-data", chainId, gameKey] })
+      queryClient.invalidateQueries({ queryKey: ["players", chainId, gameKey] })
       toast.success("Draw submitted", { description: "Waiting for MoveExecuted." })
     } catch (err) {
-      toast.error("Draw failed", { description: err instanceof Error ? err.message : "Unknown error" })
+      toast.error("Draw failed", { description: describeViemError(err) })
     }
   }
 
@@ -703,7 +912,7 @@ export default function GamePage() {
       setPendingAction(null)
       toast.success("Commitment cleared")
     } catch (err) {
-      toast.error("Break commitment failed", { description: err instanceof Error ? err.message : "Unknown error" })
+      toast.error("Break commitment failed", { description: describeViemError(err) })
     }
   }
 
@@ -869,12 +1078,12 @@ export default function GamePage() {
                       <div className="text-xs font-medium text-muted-foreground">Call card</div>
                       <div className="flex items-center gap-3">
                         <div className="h-24 w-16 shadow-sm transition-transform hover:scale-105">
-                          {gameData.callCard ? (
+                          {callCardDisplay ? (
                             <WhotCard
                               variant="face"
-                              shape={describeCard(gameData.callCard)} 
-                              number={gameData.callCard & 0x1f} // Mask out shape bits if needed, or pass full card to component logic if updated
-                              label={compactCardLabel(gameData.callCard)}
+                              shape={describeCard(callCardDisplay)}
+                              number={callCardDisplay & 0x1f}
+                              label={compactCardLabel(callCardDisplay)}
                             />
                           ) : (
                             <WhotCard variant="back" faded />
@@ -882,9 +1091,9 @@ export default function GamePage() {
                         </div>
                         <div className="text-xs text-muted-foreground">
                           <div className="font-semibold text-foreground">
-                            {gameData.callCard ? describeCard(gameData.callCard) : "Face down"}
+                            {callCardDisplay ? describeCard(callCardDisplay) : "Face down"}
                           </div>
-                          <div>{gameData.callCard ? "Match the call card" : "No call card yet"}</div>
+                          <div>{callCardHint}</div>
                         </div>
                       </div>
                     </div>
@@ -920,19 +1129,25 @@ export default function GamePage() {
                       </div>
                     </div>
                     <div className="flex flex-wrap items-center gap-2">
-                      <Button
-                        size="sm"
-                        onClick={handleRevealHand}
-                        disabled={!canRevealHand || isRevealingHand}
-                      >
-                        {isRevealingHand ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                        {myHand?.length ? "Refresh hand" : "Reveal hand"}
-                      </Button>
-                      {handUpdatedAt ? (
-                        <span className="text-xs text-muted-foreground">
-                          Updated {new Date(handUpdatedAt).toLocaleTimeString()}
-                        </span>
-                      ) : null}
+                    <Button
+                      size="sm"
+                      onClick={handleRevealHand}
+                      disabled={!canRevealHand || isRevealingHand}
+                    >
+                      {isRevealingHand ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                      {myHand?.length ? "Refresh hand" : "Reveal hand"}
+                    </Button>
+                    {!canRevealHand && revealBlockReason ? (
+                      <span className="text-xs text-muted-foreground">{revealBlockReason}</span>
+                    ) : null}
+                    {handStale ? (
+                      <span className="text-xs text-muted-foreground">Hand changed. Reveal again.</span>
+                    ) : null}
+                    {handUpdatedAt ? (
+                      <span className="text-xs text-muted-foreground">
+                        Updated {new Date(handUpdatedAt).toLocaleTimeString()}
+                      </span>
+                    ) : null}
                     </div>
                   </div>
 
@@ -1320,12 +1535,12 @@ export default function GamePage() {
                     <div className="text-xs font-medium text-muted-foreground">Call card</div>
                     <div className="flex items-center gap-3">
                       <div className="h-24 w-16 shadow-sm transition-transform hover:scale-105">
-                        {gameData.callCard ? (
+                        {callCardDisplay ? (
                           <WhotCard
                             variant="face"
-                            shape={describeCard(gameData.callCard)}
-                            number={gameData.callCard & 0x1f}
-                            label={compactCardLabel(gameData.callCard)}
+                            shape={describeCard(callCardDisplay)}
+                            number={callCardDisplay & 0x1f}
+                            label={compactCardLabel(callCardDisplay)}
                           />
                         ) : (
                           <WhotCard variant="back" faded />
@@ -1333,9 +1548,9 @@ export default function GamePage() {
                       </div>
                       <div className="text-xs text-muted-foreground">
                         <div className="font-semibold text-foreground">
-                          {gameData.callCard ? describeCard(gameData.callCard) : "Face down"}
+                          {callCardDisplay ? describeCard(callCardDisplay) : "Face down"}
                         </div>
-                        <div>{gameData.callCard ? "Match the call card" : "No call card yet"}</div>
+                        <div>{callCardHint}</div>
                       </div>
                     </div>
                   </div>
@@ -1411,6 +1626,12 @@ export default function GamePage() {
                       {isRevealingHand ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
                       {myHand?.length ? "Refresh hand" : "Reveal hand"}
                     </Button>
+                    {!canRevealHand && revealBlockReason ? (
+                      <span className="text-xs text-muted-foreground">{revealBlockReason}</span>
+                    ) : null}
+                    {handStale ? (
+                      <span className="text-xs text-muted-foreground">Hand changed. Reveal again.</span>
+                    ) : null}
                     {handUpdatedAt ? (
                       <span className="text-xs text-muted-foreground">
                         Updated {new Date(handUpdatedAt).toLocaleTimeString()}
@@ -1549,7 +1770,7 @@ export default function GamePage() {
             <>
               <div className="flex flex-wrap items-center gap-3 text-sm">
                 <Badge variant="secondary">
-                  Call card: {gameData.callCard === 0 ? "No call card yet" : describeCard(gameData.callCard)}
+                  Call card: {callCardDisplay ? describeCard(callCardDisplay) : "No call card yet"}
                 </Badge>
                 <Badge variant="secondary">Turn: {gameData.playerTurnIdx}</Badge>
                 <Badge variant="outline">Status: {["Open", "Started", "Ended"][gameData.status] ?? "Unknown"}</Badge>
@@ -1602,15 +1823,21 @@ export default function GamePage() {
             <div className="rounded-lg bg-secondary px-3 py-2 text-sm font-medium">
               Call card:{" "}
               {gameData
-                ? gameData.callCard === 0
-                  ? "No call card yet (any card can be played)"
-                  : describeCard(gameData.callCard)
+                ? callCardDisplay
+                  ? describeCard(callCardDisplay)
+                  : "No call card yet (any card can be played)"
                 : "—"}
             </div>
             <Button onClick={handleRevealHand} disabled={!canRevealHand || isRevealingHand}>
               {isRevealingHand ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
               {myHand?.length ? "Refresh hand" : "Reveal hand"}
             </Button>
+            {handStale ? (
+              <span className="text-xs text-muted-foreground">Hand changed. Reveal again.</span>
+            ) : null}
+            {!canRevealHand && revealBlockReason ? (
+              <span className="text-xs text-muted-foreground">{revealBlockReason}</span>
+            ) : null}
             {handUpdatedAt ? (
               <span className="text-xs text-muted-foreground">
                 Updated {new Date(handUpdatedAt).toLocaleTimeString()}

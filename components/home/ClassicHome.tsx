@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { useEffect, useMemo, useState } from "react"
 import { useQueryClient } from "@tanstack/react-query"
-import { ArrowLeft, ArrowRight, Loader2, Plus, Settings } from "lucide-react"
+import { ArrowLeft, ArrowRight, Loader2, Plus, Settings, RotateCcw } from "lucide-react"
 import { toast } from "sonner"
 import { useAccount, useConnect, usePublicClient } from "wagmi"
 
@@ -15,8 +15,9 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Switch } from "@/components/ui/switch"
 import { describeCard } from "@/lib/cards"
 import { useCardGameActions } from "@/hooks/useCardGameActions"
-import { exportBurner, importBurnerPrivateKey } from "@/lib/burner"
+import { exportBurner, importBurnerPrivateKey, regenerateBurnerAccount } from "@/lib/burner"
 import { CustomConnectButton } from "@/components/custom-connect-button"
+import { CopyToClipboard } from "@/components/ui/copy-to-clipboard"
 import { activeChain } from "@/config/web3Shared"
 import { useGameFeed } from "@/hooks/useGameFeed"
 
@@ -61,6 +62,11 @@ export function ClassicHome() {
   const [isMounted, setIsMounted] = useState(false)
   const [burnerPk, setBurnerPk] = useState("")
   const [rouletteMode, setRouletteMode] = useState(false)
+  const burnerInfo = exportBurner()
+  const burnerAddress = burnerInfo?.address ?? ""
+  const isBurnerConnected = Boolean(
+    address && burnerAddress && address.toLowerCase() === burnerAddress.toLowerCase(),
+  )
 
   useEffect(() => setIsMounted(true), [])
 
@@ -89,6 +95,7 @@ export function ClassicHome() {
     toast.success("Burner key copied")
   }
 
+
   const handleImportBurner = () => {
     try {
       const account = importBurnerPrivateKey(burnerPk)
@@ -98,6 +105,11 @@ export function ClassicHome() {
       const message = err instanceof Error ? err.message : "Import failed"
       toast.error(message)
     }
+  }
+
+  const handleResetBurner = () => {
+    const account = regenerateBurnerAccount()
+    toast.success("Burner reset", { description: account.address })
   }
 
   const handleCreateGame = async () => {
@@ -158,17 +170,33 @@ export function ClassicHome() {
                 <PopoverContent align="end" className="w-64 space-y-2">
                   <div className="text-sm font-medium">Burner wallet</div>
                   <p className="text-xs text-muted-foreground">Stored locally for quick joins.</p>
-                  <div className="rounded-md border bg-secondary/40 p-2 text-xs">
-                    Address: {formatAddr(address ?? exportBurner()?.address ?? "")}
+                  <div className="space-y-1 rounded-md border bg-secondary/40 p-2 text-xs">
+                    <div className="flex items-center justify-between gap-2">
+                      <span>Burner: {formatAddr(burnerAddress)}</span>
+                      {burnerAddress ? <CopyToClipboard text={burnerAddress} /> : null}
+                    </div>
+                    <div className="text-muted-foreground">
+                      Active: {formatAddr(address ?? "") || "—"}
+                      {isBurnerConnected ? " (burner)" : ""}
+                    </div>
                   </div>
-                  <div className="flex gap-2">
+                  <div className="flex items-center gap-2">
                     <Button variant="secondary" size="sm" className="flex-1" onClick={handleBurnerConnect}>
                       Use burner
                     </Button>
-                    <Button variant="outline" size="sm" className="flex-1" onClick={handleCopyBurner}>
-                      Copy key
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8"
+                      onClick={handleResetBurner}
+                      title="Reset burner wallet"
+                    >
+                      <RotateCcw className="h-4 w-4 text-muted-foreground" />
                     </Button>
                   </div>
+                  <Button variant="outline" size="sm" onClick={handleCopyBurner}>
+                    Copy key
+                  </Button>
                   <div className="space-y-1 pt-2">
                     <div className="text-xs font-medium text-muted-foreground">Import private key</div>
                     <div className="flex gap-2">

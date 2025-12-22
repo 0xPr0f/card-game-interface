@@ -2,28 +2,16 @@
 
 import { useEffect, useMemo, useState } from "react"
 import { ConnectButton } from "@rainbow-me/rainbowkit"
-import { useAccount, useBalance, useChainId } from "wagmi"
+import { useBalance, useChainId } from "wagmi"
+import type { Address } from "viem"
 
 import { Button } from "@/components/ui/button"
 import { getOrCreateBurnerAccount, onBurnerUpdated } from "@/lib/burner"
+import { activeChain } from "@/config/web3Shared"
 
 // Custom RainbowKit button that shows chain + address and labels burner sessions.
 export function CustomConnectButton() {
   const [burnerAddress, setBurnerAddress] = useState<string | null>(null)
-  const { address } = useAccount()
-  const chainId = useChainId()
-  const { data: balance } = useBalance({
-    address,
-    chainId,
-    query: { enabled: Boolean(address) },
-    watch: true,
-  })
-  const formattedBalance = useMemo(() => {
-    if (!balance) return null
-    const value = Number(balance.formatted)
-    const display = Number.isFinite(value) ? value.toFixed(4) : balance.formatted
-    return `${display} ${balance.symbol}`
-  }, [balance])
 
   useEffect(() => {
     const refresh = () => {
@@ -85,9 +73,7 @@ export function CustomConnectButton() {
                 </Button>
                 <Button onClick={openAccountModal} className="flex items-center gap-2">
                   <span>{label}</span>
-                  {formattedBalance || account?.displayBalance ? (
-                    <span className="text-xs text-muted-foreground">{formattedBalance ?? account?.displayBalance}</span>
-                  ) : null}
+                  <BalanceLabel address={account?.address as Address | undefined} fallback={account?.displayBalance} />
                 </Button>
               </div>
             )}
@@ -96,4 +82,23 @@ export function CustomConnectButton() {
       }}
     </ConnectButton.Custom>
   )
+}
+
+function BalanceLabel({ address, fallback }: { address?: Address; fallback?: string }) {
+  const chainId = useChainId()
+  const { data: balance } = useBalance({
+    address,
+    chainId: chainId ?? activeChain.id,
+    query: { enabled: Boolean(address) },
+    watch: true,
+  })
+  const formattedBalance = useMemo(() => {
+    if (!balance) return null
+    const value = Number(balance.formatted)
+    const display = Number.isFinite(value) ? value.toFixed(4) : balance.formatted
+    return `${display} ${balance.symbol}`
+  }, [balance])
+
+  if (!formattedBalance && !fallback) return null
+  return <span className="text-xs text-muted-foreground">{formattedBalance ?? fallback}</span>
 }
