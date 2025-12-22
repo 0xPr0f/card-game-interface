@@ -63,7 +63,7 @@ export function NewHome() {
       toast.error("Burner connector unavailable")
       return
     }
-    await connectAsync({ connector: burner })
+    await connectAsync({ connector: burner, chainId })
   }
 
   const addPlayerField = () => setProposedPlayers((prev) => [...prev, ""])

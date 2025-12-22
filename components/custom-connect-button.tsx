@@ -1,7 +1,8 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { ConnectButton } from "@rainbow-me/rainbowkit"
+import { useAccount, useBalance, useChainId } from "wagmi"
 
 import { Button } from "@/components/ui/button"
 import { getOrCreateBurnerAccount, onBurnerUpdated } from "@/lib/burner"
@@ -9,6 +10,20 @@ import { getOrCreateBurnerAccount, onBurnerUpdated } from "@/lib/burner"
 // Custom RainbowKit button that shows chain + address and labels burner sessions.
 export function CustomConnectButton() {
   const [burnerAddress, setBurnerAddress] = useState<string | null>(null)
+  const { address } = useAccount()
+  const chainId = useChainId()
+  const { data: balance } = useBalance({
+    address,
+    chainId,
+    query: { enabled: Boolean(address) },
+    watch: true,
+  })
+  const formattedBalance = useMemo(() => {
+    if (!balance) return null
+    const value = Number(balance.formatted)
+    const display = Number.isFinite(value) ? value.toFixed(4) : balance.formatted
+    return `${display} ${balance.symbol}`
+  }, [balance])
 
   useEffect(() => {
     const refresh = () => {
@@ -70,8 +85,8 @@ export function CustomConnectButton() {
                 </Button>
                 <Button onClick={openAccountModal} className="flex items-center gap-2">
                   <span>{label}</span>
-                  {account?.displayBalance ? (
-                    <span className="text-xs text-muted-foreground">{account.displayBalance}</span>
+                  {formattedBalance || account?.displayBalance ? (
+                    <span className="text-xs text-muted-foreground">{formattedBalance ?? account?.displayBalance}</span>
                   ) : null}
                 </Button>
               </div>

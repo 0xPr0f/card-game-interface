@@ -137,6 +137,90 @@ const CardFan = ({ count, faded = false }: { count: number; faded?: boolean }) =
   )
 }
 
+const HandFan = ({
+  cards,
+  canSelect,
+  pendingIndex,
+  actionLabel,
+  open,
+  onSelect,
+}: {
+  cards: OwnedCard[]
+  canSelect: boolean
+  pendingIndex: number | null
+  actionLabel: string
+  open: boolean
+  onSelect: (index: number) => void
+}) => {
+  const [isHovered, setIsHovered] = useState(false)
+  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null)
+  const isOpen = open || isHovered
+  const angles = buildFanAngles(cards.length).map((angle) => angle * (isOpen ? 1.7 : 0.6))
+  const mid = (cards.length - 1) / 2
+  const spreadClosed = clamp(160 / Math.max(cards.length - 1, 1), 8, 16)
+  const spreadOpen = clamp(280 / Math.max(cards.length - 1, 1), 12, 24)
+  const spread = isOpen ? spreadOpen : spreadClosed
+  return (
+    <div className="flex h-full items-end justify-center">
+      <div
+        className="relative h-40 w-full max-w-3xl"
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => {
+          setIsHovered(false)
+          setHoveredIndex(null)
+        }}
+        onFocusCapture={() => setIsHovered(true)}
+        onBlurCapture={(event) => {
+          if (!event.currentTarget.contains(event.relatedTarget as Node)) {
+            setIsHovered(false)
+            setHoveredIndex(null)
+          }
+        }}
+      >
+        {cards.map((card, idx) => {
+          const angle = angles[idx] ?? 0
+          const offset = (idx - mid) * spread
+          const isCardHovered = hoveredIndex === card.index
+          const lift = isOpen ? -Math.abs(angle) * 0.8 - 6 : 16
+          const hoverLift = isCardHovered ? -18 : 0
+          const hoverScale = isCardHovered ? 1.06 : 1
+          const rotate = isOpen ? angle : angle * 0.2
+          const translateX = isOpen ? offset : offset * 0.35
+          return (
+            <button
+              key={`hand-${card.index}`}
+              type="button"
+              onClick={() => onSelect(card.index)}
+              disabled={!canSelect}
+              onMouseEnter={() => setHoveredIndex(card.index)}
+              onMouseLeave={() => setHoveredIndex(null)}
+              onFocus={() => setHoveredIndex(card.index)}
+              onBlur={() => setHoveredIndex(null)}
+              title={`Commit ${actionLabel} with idx ${card.index}`}
+              className={`group absolute left-1/2 bottom-0 h-28 w-20 origin-bottom rounded-xl p-1 transition-[transform,opacity] duration-500 ease-out will-change-transform ${
+                pendingIndex === card.index ? "ring-2 ring-primary" : "ring-1 ring-border"
+              } ${canSelect ? "cursor-pointer" : "cursor-not-allowed"}`}
+              style={{
+                transform: `translateX(calc(-50% + ${translateX}px)) rotate(${rotate}deg) translateY(${lift + hoverLift}px) scale(${(isOpen ? 1 : 0.96) * hoverScale})`,
+                zIndex: isCardHovered ? cards.length + 2 : idx + 1,
+                transitionDelay: `${isOpen ? idx * 40 : 0}ms`,
+              }}
+            >
+              <WhotCard variant="face" shape={card.shape} number={card.number} />
+              <span className="absolute right-2 top-2 rounded-full bg-white/90 px-2 py-0.5 text-[10px] font-semibold text-slate-700">
+                #{card.index}
+              </span>
+              <span className="absolute bottom-2 left-1/2 -translate-x-1/2 rounded-full bg-black/70 px-2 py-0.5 text-[10px] font-semibold text-white opacity-0 transition group-hover:opacity-100">
+                {actionLabel}
+              </span>
+            </button>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
 const MarketDeckFan = ({
   count,
   canDraw,
@@ -227,6 +311,7 @@ export default function GamePage() {
   const [handUpdatedAt, setHandUpdatedAt] = useState<number | null>(null)
   const [viewMode, setViewMode] = useState<ViewMode>("fun")
   const [isMounted, setIsMounted] = useState(false)
+  const [handFanOpen, setHandFanOpen] = useState(false)
 
   useEffect(() => {
     setIsMounted(true)
@@ -263,6 +348,16 @@ export default function GamePage() {
       setAction(0)
     }
   }, [viewMode, action])
+
+  useEffect(() => {
+    if (!myHand?.length) {
+      setHandFanOpen(false)
+      return
+    }
+    setHandFanOpen(false)
+    const id = requestAnimationFrame(() => setHandFanOpen(true))
+    return () => cancelAnimationFrame(id)
+  }, [myHand, handUpdatedAt])
 
   const { data: gameData, isLoading: loadingGame } = useQuery({
     queryKey: ["game-data", chainId, gameKey],
@@ -1381,30 +1476,14 @@ export default function GamePage() {
                   ) : !me ? (
                     <p className="text-xs text-muted-foreground">Join the game to see your hand.</p>
                   ) : myHand?.length ? (
-                    <div className="grid gap-3 sm:grid-cols-4 lg:grid-cols-5">
-                      {myHand.map((card) => (
-                        <button
-                          key={card.index}
-                          type="button"
-                          onClick={() => handleCommitCard(card.index)}
-                          disabled={!canCommitSelected}
-                          title={`Commit ${actionLabel} with idx ${card.index}`}
-                        className={`group relative rounded-xl p-1 transition ${
-                          pendingCardIndex === card.index
-                            ? "ring-2 ring-primary"
-                            : "ring-1 ring-slate-200"
-                        } ${canCommitSelected ? "cursor-pointer hover:-translate-y-1" : "cursor-not-allowed opacity-60"}`}
-                      >
-                          <WhotCard variant="face" shape={card.shape} number={card.number} />
-                          <span className="absolute right-2 top-2 rounded-full bg-white/90 px-2 py-0.5 text-[10px] font-semibold text-slate-700">
-                            #{card.index}
-                          </span>
-                          <span className="absolute bottom-2 left-1/2 -translate-x-1/2 rounded-full bg-black/70 px-2 py-0.5 text-[10px] font-semibold text-white opacity-0 transition group-hover:opacity-100">
-                            {actionLabel}
-                          </span>
-                        </button>
-                      ))}
-                    </div>
+                    <HandFan
+                      cards={myHand}
+                      canSelect={canCommitSelected}
+                      pendingIndex={pendingCardIndex}
+                      actionLabel={actionLabel}
+                      open={handFanOpen}
+                      onSelect={handleCommitCard}
+                    />
                   ) : (
                     <div className="flex items-center gap-4">
                       <CardFan count={me?.cards.length ?? 0} faded={false} />

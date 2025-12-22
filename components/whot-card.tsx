@@ -14,13 +14,70 @@ interface WhotCardProps {
   faded?: boolean
 }
 
-const WHOT_INK = "var(--primary)"
+const WHOT_INK = "#8b2037"
 const WHOT_BG = "var(--card)"
 const WHOT_SPRITE_SRC = "/whotdrawing.svg"
 const WHOT_BACK_VIEWBOX = "903.58352 99.89340 197.35558 312.69339"
 const WHOT_FRAME_VIEWBOX = "440.33955 435.96146 197.35558 312.69339"
 const WHOT_BACK_ID = "g186"
 const WHOT_FRAME_ID = "rect27"
+const WHOT_WHOT_FACE_ID = "g246"
+const WHOT_WHOT_FACE_VIEWBOX = "675.58332 99.89340 197.35558 312.69339"
+const WHOT_FACE_WIDTH = 197.35558
+const WHOT_FACE_HEIGHT = 312.69339
+const WHOT_FACE_VIEWBOX = `0 0 ${WHOT_FACE_WIDTH} ${WHOT_FACE_HEIGHT}`
+
+type FaceTextSpec = {
+  x: number
+  y: number
+  transform: string
+}
+
+type ShapeTemplate = {
+  offsetX: number
+  offsetY: number
+  shapeIds: string[]
+  topText: FaceTextSpec
+  bottomText: FaceTextSpec
+}
+
+const WHOT_SHAPE_TEMPLATES: Record<Exclude<CardShape, "Whot">, ShapeTemplate> = {
+  Circle: {
+    offsetX: 193.82826,
+    offsetY: 98.70435,
+    shapeIds: ["ellipse63", "circle10", "circle12"],
+    topText: { x: 210.90817, y: 141.95665, transform: "scale(0.95120444,1.0512987)" },
+    bottomText: { x: -403.22528, y: -344.78622, transform: "scale(-0.95120444,-1.0512987)" },
+  },
+  Triangle: {
+    offsetX: 1163.28142,
+    offsetY: 435.51529,
+    shapeIds: ["path181", "path182", "path183"],
+    topText: { x: 1230.093, y: 460.07001, transform: "scale(0.95120444,1.0512987)" },
+    bottomText: { x: -1420.3075, y: -662.8996, transform: "scale(-0.95120444,-1.0512987)" },
+  },
+  Cross: {
+    offsetX: 675.39314,
+    offsetY: 436.33957,
+    shapeIds: ["rect40", "rect62", "rect43", "rect44", "rect46", "rect47"],
+    topText: { x: 717.17676, y: 460.85474, transform: "scale(0.95120444,1.0512987)" },
+    bottomText: { x: -909.49384, y: -663.68427, transform: "scale(-0.95120444,-1.0512987)" },
+  },
+  Square: {
+    offsetX: 440.33955,
+    offsetY: 435.96146,
+    shapeIds: ["rect26", "rect24", "rect25"],
+    topText: { x: 470.06516, y: 460.49509, transform: "scale(0.95120444,1.0512987)" },
+    bottomText: { x: -660.27966, y: -663.32465, transform: "scale(-0.95120444,-1.0512987)" },
+  },
+  Star: {
+    offsetX: 437.58332,
+    offsetY: 99.8934,
+    shapeIds: ["path37", "path162", "path163"],
+    topText: { x: 467.16757, y: 140.82562, transform: "scale(0.95120444,1.0512987)" },
+    bottomText: { x: -659.48468, y: -343.65518, transform: "scale(-0.95120444,-1.0512987)" },
+  },
+}
 
 const WhotSprite = ({
   id,
@@ -44,6 +101,11 @@ const WhotSprite = ({
   )
 }
 
+const WhotUse = ({ id }: { id: string }) => {
+  const href = `${WHOT_SPRITE_SRC}#${id}`
+  return <use href={href} xlinkHref={href} />
+}
+
 export function WhotCard({
   shape,
   number,
@@ -63,157 +125,75 @@ export function WhotCard({
 
   const displayNumber = number !== undefined ? number.toString() : ""
   const isWhot = displayShape === "Whot"
-  
-  // Whot cards typically use the same color for all shapes in the "classic" decks the user describes
-  const inkColor = WHOT_INK
-
-  const renderShapeIcon = (x: number, y: number, size: number) => {
-    switch (displayShape) {
-      case "Circle":
-        return <circle cx={x} cy={y} r={size * 0.45} fill={inkColor} />
-      case "Triangle":
-        // Equilateralish triangle
-        const th = (size * 0.8) * 0.866
-        return (
-          <polygon
-            points={`${x},${y - th / 2} ${x + size * 0.45},${y + th / 2} ${x - size * 0.45},${y + th / 2}`}
-            fill={inkColor}
-          />
-        )
-      case "Square":
-        return (
-          <rect
-            x={x - size * 0.4}
-            y={y - size * 0.4}
-            width={size * 0.8}
-            height={size * 0.8}
-            fill={inkColor}
-          />
-        )
-      case "Cross":
-        const w = size * 0.8
-        const t = size * 0.25
-        return (
-          <path
-            d={`M${x - t/2},${y - w/2} h${t} v${(w-t)/2} h${(w-t)/2} v${t} h-${(w-t)/2} v${(w-t)/2} h-${t} v-${(w-t)/2} h-${(w-t)/2} v-${t} h${(w-t)/2} z`}
-            fill={inkColor}
-          />
-        )
-      case "Star":
-         // 5-point star
-         const points = Array.from({ length: 10 }, (_, i) => {
-            const angle = (i * 36 - 90) * (Math.PI / 180)
-            const r = i % 2 === 0 ? size * 0.45 : size * 0.2
-            return `${x + r * Math.cos(angle)},${y + r * Math.sin(angle)}`
-         }).join(" ")
-         return <polygon points={points} fill={inkColor} />
-      case "Whot":
-        return (
-          <text
-            x={x}
-            y={y + size * 0.15}
-            textAnchor="middle"
-            fontSize={size * 0.4}
-            fontWeight="bold"
-            fill={inkColor}
-            fontFamily="serif"
-          >
-            20
-          </text>
-        )
-      default:
-        return <circle cx={x} cy={y} r={size * 0.4} fill={inkColor} opacity={0.5} />
-    }
-  }
-
-  const renderFace = () => (
-    <>
-      <rect x="0" y="0" width="100%" height="100%" fill={WHOT_BG} />
-      
-      {/* Top Left Corner */}
-      <g transform="translate(8, 12)">
-        <text
-          x="0"
-          y="0"
-          fontSize="16"
-          fontWeight="bold"
-          fill={inkColor}
-          textAnchor="middle"
-          fontFamily="serif"
-        >
-          {isWhot ? "20" : displayNumber}
-        </text>
-        <g transform="translate(0, 12)">
-            {renderShapeIcon(0, 0, 10)}
-        </g>
-      </g>
-
-      {/* Bottom Right Corner (Rotated) */}
-      <g transform="rotate(180, 50, 75) translate(8, 12)">
-        <text
-          x="0"
-          y="0"
-          fontSize="16"
-          fontWeight="bold"
-          fill={inkColor}
-          textAnchor="middle"
-          fontFamily="serif"
-        >
-          {isWhot ? "20" : displayNumber}
-        </text>
-        <g transform="translate(0, 12)">
-            {renderShapeIcon(0, 0, 10)}
-        </g>
-      </g>
-
-      {/* Central Large Shape */}
-      <g transform="translate(50, 75)">
-         {renderShapeIcon(0, 0, 70)}
-         
-         {/* WHOT label for the Whot card specifically */}
-         {isWhot && (
-             <text
-                x="0"
-                y="55"
-                textAnchor="middle"
-                fontSize="14"
-                fontWeight="900"
-                fill={inkColor}
-                letterSpacing="3"
-                fontFamily="serif"
-             >
-                 WHOT
-             </text>
-         )}
-      </g>
-    </>
-  )
+  const faceTemplate = !isWhot ? WHOT_SHAPE_TEMPLATES[displayShape as Exclude<CardShape, "Whot">] : null
+  const faceNumber = isWhot ? "20" : displayNumber || "?"
 
   return (
     <div
       className={cn(
-        "relative select-none overflow-hidden rounded-[6px] shadow-sm transition-transform hover:scale-105",
-        "aspect-[2/3] w-full",
+        "relative select-none overflow-hidden rounded-[6px] bg-card shadow-sm transition-transform hover:scale-105",
+        "aspect-[197/312] w-full",
         faded && "opacity-80",
         className
       )}
     >
       {variant === "back" ? (
         <WhotSprite id={WHOT_BACK_ID} viewBox={WHOT_BACK_VIEWBOX} className="absolute inset-0" />
+      ) : isWhot ? (
+        <WhotSprite
+          id={WHOT_WHOT_FACE_ID}
+          viewBox={WHOT_WHOT_FACE_VIEWBOX}
+          className="absolute inset-0"
+        />
       ) : (
         <svg
-          viewBox="0 0 100 150"
+          viewBox={WHOT_FACE_VIEWBOX}
           className="absolute inset-0 h-full w-full"
           xmlns="http://www.w3.org/2000/svg"
         >
-          {renderFace()}
+          <rect x="0" y="0" width={WHOT_FACE_WIDTH} height={WHOT_FACE_HEIGHT} fill={WHOT_BG} />
+          {faceTemplate ? (
+            <g transform={`translate(${-faceTemplate.offsetX} ${-faceTemplate.offsetY})`}>
+              {faceTemplate.shapeIds.map((id) => (
+                <WhotUse key={id} id={id} />
+              ))}
+              <text
+                x={faceTemplate.topText.x}
+                y={faceTemplate.topText.y}
+                transform={faceTemplate.topText.transform}
+                fontFamily="'Times New Roman', serif"
+                fontSize="50.1095"
+                fill="none"
+                stroke={WHOT_INK}
+                strokeWidth="5.26389"
+                strokeOpacity="1"
+              >
+                {faceNumber}
+              </text>
+              <text
+                x={faceTemplate.bottomText.x}
+                y={faceTemplate.bottomText.y}
+                transform={faceTemplate.bottomText.transform}
+                fontFamily="'Times New Roman', serif"
+                fontSize="50.1095"
+                fill="none"
+                stroke={WHOT_INK}
+                strokeWidth="5.26389"
+                strokeOpacity="1"
+              >
+                {faceNumber}
+              </text>
+            </g>
+          ) : null}
         </svg>
       )}
-      <WhotSprite
-        id={WHOT_FRAME_ID}
-        viewBox={WHOT_FRAME_VIEWBOX}
-        className="pointer-events-none absolute inset-0"
-      />
+      {variant === "back" || !isWhot ? (
+        <WhotSprite
+          id={WHOT_FRAME_ID}
+          viewBox={WHOT_FRAME_VIEWBOX}
+          className="pointer-events-none absolute inset-0"
+        />
+      ) : null}
     </div>
   )
 }

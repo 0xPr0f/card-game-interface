@@ -10,7 +10,6 @@ import {
 } from "@rainbow-me/rainbowkit/wallets"
 import type { Account } from "viem/accounts"
 
-import { getOrCreateBurnerAccount } from "@/lib/burner"
 import { activeChain, defaultTransport, activeRpcUrl, activeWsUrl } from "./web3Shared"
 import { env } from "@/lib/env"
 import { createBurnerConnector } from "./burnerConnector"
@@ -19,7 +18,6 @@ const walletConnectProjectId = env.walletConnectProjectId || "demo"
 export { activeChain, activeRpcUrl, activeWsUrl }
 
 export const createWagmiConfig = (options: { burnerAccount?: Account | null } = {}) => {
-  const burnerAccount = options.burnerAccount ?? getOrCreateBurnerAccount()
   const rkConnectors = connectorsForWallets([
     {
       groupName: "Popular",
@@ -43,7 +41,7 @@ export const createWagmiConfig = (options: { burnerAccount?: Account | null } = 
       [activeChain.id]: defaultTransport,
     },
     connectors: [
-      createBurnerConnector(burnerAccount),
+      createBurnerConnector(options.burnerAccount ?? undefined),
       ...rkConnectors,
     ],
     multiInjectedProviderDiscovery: false,

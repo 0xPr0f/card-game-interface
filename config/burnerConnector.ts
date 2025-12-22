@@ -2,7 +2,7 @@ import { createWalletClient, type Chain } from "viem"
 import type { Account } from "viem/accounts"
 import { createConnector } from "wagmi"
 
-import { getOrCreateBurnerAccount } from "@/lib/burner"
+import { getOrCreateBurnerAccount, onBurnerUpdated } from "@/lib/burner"
 import { activeChain, defaultTransport } from "./web3Shared"
 
 const pickChain = (chains: readonly Chain[], chainId?: number) =>
@@ -10,10 +10,14 @@ const pickChain = (chains: readonly Chain[], chainId?: number) =>
 
 export const createBurnerConnector = (account?: Account) =>
   createConnector((config) => {
-    const burnerAccount = account ?? getOrCreateBurnerAccount()
+    const resolveAccount = () => account ?? getOrCreateBurnerAccount()
+    let burnerAccount = resolveAccount()
+    let connectedChainId = activeChain.id
 
     const getClient = (chainId?: number) => {
-      const chain = pickChain(config.chains, chainId)
+      burnerAccount = resolveAccount()
+      const chain = pickChain(config.chains, chainId ?? connectedChainId)
+      connectedChainId = chain.id
       const transport = config.transports?.[chain.id] ?? defaultTransport
       return createWalletClient({
         account: burnerAccount,
@@ -23,12 +27,26 @@ export const createBurnerConnector = (account?: Account) =>
     }
 
     let walletClient = getClient()
+    const syncAccount = () => {
+      const next = resolveAccount()
+      if (next.address.toLowerCase() !== burnerAccount.address.toLowerCase()) {
+        burnerAccount = next
+        walletClient = getClient(connectedChainId)
+        config.emitter.emit("change", { accounts: [burnerAccount.address] })
+      }
+    }
+
+    if (typeof window !== "undefined") {
+      onBurnerUpdated(syncAccount)
+      window.addEventListener("storage", syncAccount)
+    }
 
     return {
       id: "burner",
       name: "Burner Wallet",
       type: "burner",
       async connect({ chainId } = {}) {
+        syncAccount()
         walletClient = getClient(chainId)
         const connectedChainId = walletClient.chain?.id ?? activeChain.id
         config.emitter.emit("connect", { accounts: [burnerAccount.address], chainId: connectedChainId })
@@ -38,16 +56,19 @@ export const createBurnerConnector = (account?: Account) =>
         config.emitter.emit("disconnect")
       },
       async getAccounts() {
+        syncAccount()
         return [burnerAccount.address]
       },
       async getChainId() {
         return walletClient.chain?.id ?? activeChain.id
       },
       async getProvider({ chainId } = {}) {
+        syncAccount()
         walletClient = getClient(chainId)
         return walletClient.transport
       },
       async getClient({ chainId } = {}) {
+        syncAccount()
         walletClient = getClient(chainId)
         return walletClient as unknown as ReturnType<typeof createWalletClient>
       },
