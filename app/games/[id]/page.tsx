@@ -1329,7 +1329,7 @@ export default function GamePage() {
                               <div className="-translate-y-3 flex-shrink-0">
                                 <CardFan count={player.cards.length} faded={isEmpty} />
                               </div>
-                              <div className="text-xs font-semibold text-foreground sm:absolute sm:bottom-3 sm:right-3">
+                              <div className="text-xs font-semibold text-foreground absolute bottom-3 right-3">
                                 {player.cards.length} cards
                               </div>
                             </div>
@@ -1506,7 +1506,7 @@ export default function GamePage() {
                             <div className="-translate-y-3 flex-shrink-0">
                               <CardFan count={player.cards.length} faded={isEmpty} />
                             </div>
-                            <div className="text-xs font-semibold text-foreground whitespace-nowrap sm:absolute sm:bottom-3 sm:right-3">
+                            <div className="text-xs font-semibold text-foreground whitespace-nowrap absolute bottom-3 right-3">
                               {player.cards.length} cards
                             </div>
                           </div>
