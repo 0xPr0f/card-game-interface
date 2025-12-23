@@ -44,8 +44,15 @@ export function NewHome() {
   const chainId = publicClient?.chain?.id ?? activeChain.id
   const queryClient = useQueryClient()
 
-  const { data: indexedGames = [], isFetching } = useGameFeed(publicClient)
-  const games = useMemo(() => indexedGames, [indexedGames])
+  const {
+    data: indexedGames,
+    isFetching,
+    isPending,
+    isError,
+    error,
+  } = useGameFeed(publicClient)
+  const games = useMemo(() => indexedGames ?? [], [indexedGames])
+  const isFeedLoading = isPending || isFetching
 
   const [proposedPlayers, setProposedPlayers] = useState<string[]>([""])
   const [maxPlayers, setMaxPlayers] = useState(2)
@@ -231,7 +238,7 @@ export function NewHome() {
           </div>
 
           <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
-             <div className="relative h-40 w-64 mx-auto rotate-[-5deg] hover:rotate-0 transition-transform duration-500 mb-8">
+             <div className="relative h-56 h-40 sm:h-40 w-64 mx-auto rotate-[-5deg] hover:rotate-0 transition-transform duration-500 mb-12 sm:mb-8">
                 <div className="absolute top-0 left-0 transform -rotate-12 translate-x-[-30px] drop-shadow-2xl transition-transform hover:-translate-y-2">
                     <WhotCard variant="back" className="w-32 shadow-none rounded-[8px]" />
                 </div>
@@ -273,7 +280,7 @@ export function NewHome() {
                    <CardDescription>Setup a new encrypted game lobby</CardDescription>
                  </CardHeader>
                  <CardContent className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div className="space-y-2">
                            <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Players</label>
                            <Input 
@@ -346,7 +353,10 @@ export function NewHome() {
         <section id="games-feed" className="mx-auto max-w-3xl space-y-6">
             <div className="flex items-center justify-between">
                 <div>
-                     <h2 className="text-2xl font-bold tracking-tight">Created Games</h2>
+                     <div className="flex items-center gap-2">
+                        <h2 className="text-2xl font-bold tracking-tight">Created Games</h2>
+                        {isFeedLoading ? <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" /> : null}
+                     </div>
                      <p className="text-muted-foreground">Join an existing game to start playing.</p>
                 </div>
                 <Card className="p-1 px-3 bg-secondary/30 border-0 flex items-center gap-2">
@@ -364,10 +374,14 @@ export function NewHome() {
             </div>
 
             <div className="grid gap-4 md:grid-cols-2">
-                {isFetching && games.length === 0 ? (
+                {isFeedLoading && games.length === 0 ? (
                     Array.from({ length: 4 }).map((_, i) => (
                         <Card key={i} className="bg-secondary/10 border-dashed animate-pulse h-40" />
                     ))
+                ) : isError ? (
+                    <div className="col-span-full py-6 text-center rounded-xl border border-dashed bg-secondary/5 text-sm text-muted-foreground">
+                        {error instanceof Error ? error.message : "Unable to load games"}
+                    </div>
                 ) : games.length > 0 ? (
                     games.map((game) => (
                         <Link key={game.gameId.toString()} href={`/games/${game.gameId.toString()}`}>

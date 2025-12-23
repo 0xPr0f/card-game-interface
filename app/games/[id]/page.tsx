@@ -251,9 +251,9 @@ const HandFan = ({
   const spreadOpen = clamp(280 / Math.max(cards.length - 1, 1), 12, 24)
   const spread = isOpen ? spreadOpen : spreadClosed
   return (
-    <div className="flex h-full items-end justify-center">
+    <div className="flex h-full items-end justify-center overflow-hidden">
       <div
-        className="relative h-40 w-full max-w-3xl"
+        className="relative h-40 w-full max-w-3xl origin-bottom scale-[0.65] sm:scale-100 transition-transform"
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => {
           setIsHovered(false)
@@ -1452,7 +1452,7 @@ export default function GamePage() {
                     <Loader2 className="h-4 w-4 animate-spin" /> Loading players...
                   </div>
                 ) : (
-                  <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                  <div className="mt-3 flex overflow-x-auto gap-3 pb-2 sm:grid sm:grid-cols-2 lg:grid-cols-4 sm:pb-0 scrollbar-hide snap-x">
                     {funPlayers.map((player) => {
                       const isEmpty = player.addr.toLowerCase() === ZERO_ADDRESS
                       const isCurrent = gameData.playerTurnIdx === player.index
@@ -1460,7 +1460,7 @@ export default function GamePage() {
                       return (
                         <div
                           key={`fun-player-${player.index}`}
-                          className={`rounded-2xl border p-3 transition-colors ${
+                          className={`min-w-[160px] sm:min-w-0 flex-shrink-0 snap-center rounded-2xl border p-3 transition-colors ${
                             isCurrent
                               ? "border-primary/40 bg-white ring-2 ring-primary/20"
                               : "border-slate-200 bg-white"
@@ -1469,7 +1469,7 @@ export default function GamePage() {
                           <div className="flex items-center justify-between gap-2">
                             <div className="flex items-center gap-2">
                               <div className="text-sm font-semibold">
-                                {isEmpty ? "Open seat" : `Player #${player.index}`}
+                                {isEmpty ? "Open" : `P#${player.index}`}
                               </div>
                               {!isEmpty && (
                                 <CopyToClipboard
@@ -1479,16 +1479,16 @@ export default function GamePage() {
                               )}
                             </div>
                             <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
-                              {isMe ? <Badge>Me</Badge> : null}
-                              {player.forfeited ? <Badge variant="destructive">Forfeited</Badge> : null}
+                              {isMe ? <Badge className="px-1 text-[10px] h-5">Me</Badge> : null}
+                              {player.forfeited ? <Badge variant="destructive" className="px-1 text-[10px] h-5">Left</Badge> : null}
                             </div>
                           </div>
-                          <div className="mt-1 text-xs text-muted-foreground">
-                            {isEmpty ? "Waiting for player..." : formatAddr(player.addr)}
+                          <div className="mt-1 text-xs text-muted-foreground truncate">
+                            {isEmpty ? "Waiting..." : formatAddr(player.addr)}
                           </div>
                           <div className="mt-3 flex items-center justify-between">
                             <CardFan count={player.cards.length} faded={isEmpty} />
-                            <div className="text-xs font-medium text-muted-foreground">
+                            <div className="text-xs font-medium text-muted-foreground whitespace-nowrap">
                               {player.cards.length} cards
                             </div>
                           </div>
@@ -1505,32 +1505,27 @@ export default function GamePage() {
                       Start game
                     </Button>
                     <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                      <span>Start via relayer</span>
+                      <span>Relayer</span>
                       <Switch checked={relayerEnabled} onCheckedChange={setRelayerEnabled} />
-                      <span>{relayerEnabled ? "Relayer pays gas" : "Wallet pays gas"}</span>
-                    </div>
-                    <div className="text-[10px] text-muted-foreground">
-                      {relayerEnabled ? `Relayer: ${formatAddr(RELAYER_ADDRESS)}` : "Relayer disabled"}
                     </div>
                   </div>
                 ) : null}
               </div>
 
-              <div className="rounded-3xl border bg-white p-3 shadow-sm">
+              <div className="rounded-3xl border bg-white p-3 shadow-sm flex-shrink-0">
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div>
                     <div className="text-xs font-medium text-muted-foreground">Table</div>
                     <div className="text-sm font-semibold">
-                      {["Open", "Started", "Ended"][gameData.status] ?? "Unknown"} | Turn #
-                      {gameData.playerTurnIdx}
+                      {["Open", "Started", "Ended"][gameData.status] ?? "Unknown"} | T#{gameData.playerTurnIdx}
                     </div>
                   </div>
                   <div className="text-xs text-muted-foreground">
-                    Seats {gameData.playersJoined}/{gameData.maxPlayers}
+                    {gameData.playersJoined}/{gameData.maxPlayers} Seated
                   </div>
                 </div>
 
-                <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                <div className="mt-3 grid grid-cols-2 gap-3">
                   <div className="space-y-1">
                     <div className="text-xs font-medium text-muted-foreground">Call card</div>
                     <div className="flex items-center gap-3">
