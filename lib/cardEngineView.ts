@@ -129,7 +129,7 @@ export const gameDataSlot = (gameId: bigint) =>
         [gameId, GAME_DATA_SLOT],
       ),
     ),
-)
+  )
 
 export const commitmentSlot = (gameId: bigint) =>
   BigInt(

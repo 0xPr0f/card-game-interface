@@ -263,10 +263,12 @@ export const HandViewToggle = ({
 export const MarketDeckFan = ({
   count,
   canDraw,
+  isLoading,
   onDraw,
 }: {
   count: number
   canDraw: boolean
+  isLoading?: boolean
   onDraw: () => void
 }) => {
   const displayCount = clamp(count || 1, 1, 5)
@@ -275,29 +277,31 @@ export const MarketDeckFan = ({
     <button
       type="button"
       onClick={onDraw}
-      disabled={!canDraw}
-      title={canDraw ? "Draw from market" : "Draw on your turn"}
+      disabled={!canDraw || isLoading}
+      title={isLoading ? "Drawing..." : canDraw ? "Draw from market" : "Draw on your turn"}
       className={`group relative h-20 w-24 -translate-y-2 transition sm:h-24 sm:w-28 ${
-        canDraw ? "cursor-pointer" : "cursor-not-allowed opacity-60"
+        canDraw && !isLoading ? "cursor-pointer" : "cursor-not-allowed opacity-60"
       }`}
     >
       {angles.map((angle, idx) => (
         <div
           key={`market-${idx}`}
-          className="absolute left-1/2 bottom-0 h-16 w-12 origin-bottom shadow-sm transition-all duration-300 group-hover:-translate-y-1 sm:h-20 sm:w-14"
+          className={`absolute left-1/2 bottom-0 h-16 w-12 origin-bottom shadow-sm transition-all duration-300 sm:h-20 sm:w-14 ${isLoading ? 'animate-pulse' : 'group-hover:-translate-y-1'}`}
           style={{
             transform: `translateX(-50%) rotate(${angle}deg) translateY(${Math.abs(angle) / 5}px)`,
             zIndex: idx,
           }}
         >
-          <WhotCard variant="back" faded={!canDraw} />
+          <WhotCard variant="back" faded={!canDraw || isLoading} />
         </div>
       ))}
-      {canDraw ? (
-        <div className="absolute -inset-2 flex items-center justify-center rounded-xl bg-black/40 text-xs font-semibold uppercase tracking-wider text-white opacity-0 transition group-hover:opacity-100">
-          Draw
+
+      {isLoading ? (
+        <div className="absolute inset-0 flex items-center justify-center">
+          <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent" />
         </div>
       ) : null}
+
       {count > displayCount ? (
         <span className="absolute right-0 top-0 rounded-full bg-primary px-2 py-1 text-[10px] font-bold text-primary-foreground shadow-sm">
           +{count - displayCount}

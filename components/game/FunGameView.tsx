@@ -31,6 +31,7 @@ type FunGameViewProps = {
   canResolvePending: boolean
   handleResolvePending: () => void
   handleDrawFromMarket: () => void
+  isDrawing: boolean
   handleRevealHand: () => void
   canRevealHand: boolean
   isRevealingHand: boolean
@@ -102,6 +103,7 @@ export function FunGameView({
   canResolvePending,
   handleResolvePending,
   handleDrawFromMarket,
+  isDrawing,
   handleRevealHand,
   canRevealHand,
   isRevealingHand,
@@ -223,7 +225,7 @@ export function FunGameView({
                 <div className="space-y-1">
                   <div className="text-xs font-medium text-muted-foreground">Market deck</div>
                   <div className="flex items-center gap-3 pt-1">
-                    <MarketDeckFan count={marketCount} canDraw={canDrawNow} onDraw={drawHandler} />
+                    <MarketDeckFan count={marketCount} canDraw={canDrawNow} isLoading={isDrawing} onDraw={drawHandler} />
                     <div className="text-xs text-muted-foreground">
                       <div className="font-semibold text-foreground">{marketCount} cards</div>
                       <div>{drawHint}</div>
@@ -690,7 +692,7 @@ export function FunGameView({
               <div className="space-y-1">
                 <div className="text-xs font-medium text-muted-foreground">Market deck</div>
                 <div className="flex items-center gap-3 pt-1">
-                  <MarketDeckFan count={marketCount} canDraw={canDrawNow} onDraw={drawHandler} />
+                  <MarketDeckFan count={marketCount} canDraw={canDrawNow} isLoading={isDrawing} onDraw={drawHandler} />
                   <div className="text-xs text-muted-foreground">
                     <div className="font-semibold text-foreground">{marketCount} cards</div>
                     <div>{drawHint}</div>
@@ -735,7 +737,14 @@ export function FunGameView({
           <div className="flex min-h-0 flex-1 flex-col rounded-2xl border bg-white p-3 shadow-sm sm:rounded-3xl sm:p-4">
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
-                <div className="text-xs font-medium text-muted-foreground">Your hand</div>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-medium text-muted-foreground">Your hand</span>
+                  {me?.cards.length ? (
+                    <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-semibold text-primary">
+                      {me.cards.length} {me.cards.length === 1 ? 'card' : 'cards'}
+                    </span>
+                  ) : null}
+                </div>
                 <div className="text-sm font-semibold">
                   {gameStarted ? (isMyTurn ? "It's your move" : "Waiting for your turn") : "Game not started"}
                 </div>

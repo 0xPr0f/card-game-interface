@@ -19,6 +19,7 @@ type TechGameViewProps = {
   gameData: GameData | null
   callCardDisplay: number
   isMyTurn: boolean
+  isSpectator: boolean
   joinHandler: () => void
   startHandler: () => void
   joinDisabled: boolean
@@ -45,6 +46,9 @@ type TechGameViewProps = {
   pendingPickCount: number
   handleResolvePending: () => void
   canResolvePending: boolean
+  canDraw: boolean
+  handleDrawFromMarket: () => void
+  isDrawing: boolean
   action: number
   setAction: (value: number) => void
   cardIndex: string
@@ -82,6 +86,7 @@ export function TechGameView({
   gameData,
   callCardDisplay,
   isMyTurn,
+  isSpectator,
   joinHandler,
   startHandler,
   joinDisabled,
@@ -108,6 +113,9 @@ export function TechGameView({
   pendingPickCount,
   handleResolvePending,
   canResolvePending,
+  canDraw,
+  handleDrawFromMarket,
+  isDrawing,
   action,
   setAction,
   cardIndex,
@@ -165,6 +173,8 @@ export function TechGameView({
                 </Badge>
                 <Badge variant="outline">Market: {marketSize(gameData.marketDeckMap)}</Badge>
                 {isMyTurn ? <Badge>My turn</Badge> : null}
+                {isSpectator ? <Badge variant="secondary">Spectating</Badge> : null}
+                {canDraw ? <Badge variant="outline">Can draw</Badge> : null}
               </div>
               {gameData.status === 0 ? (
                 <>
@@ -367,7 +377,7 @@ export function TechGameView({
 
           <div className="flex flex-wrap gap-2">
             <Button
-              onClick={handleCommit}
+              onClick={() => handleCommit()}
               disabled={
                 !isConnected ||
                 !canPlayTurn ||
@@ -384,7 +394,7 @@ export function TechGameView({
             </Button>
             <Button
               variant="secondary"
-              onClick={handleExecute}
+              onClick={() => handleExecute()}
               disabled={!isConnected || !canPlayTurn || executePending || (needsCommit && !pendingProofData)}
             >
               {executePending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
@@ -400,6 +410,14 @@ export function TechGameView({
             </Button>
             <Button variant="ghost" onClick={handleForfeit} disabled={!isConnected || !canForfeit || forfeitPending}>
               Forfeit
+            </Button>
+            <Button 
+              variant="secondary" 
+              onClick={handleDrawFromMarket} 
+              disabled={!isConnected || !canDraw || isDrawing || hasPendingCommit}
+            >
+              {isDrawing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+              Draw from market
             </Button>
           </div>
 

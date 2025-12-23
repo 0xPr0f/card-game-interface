@@ -904,7 +904,7 @@ export default function GamePage() {
       {viewMode === "fun" ? (
         <FunGameView
           loadingGame={loadingGame}
-          gameData={gameData}
+          gameData={gameData!}
           isSpectator={isSpectator}
           gameStarted={gameStarted}
           isMyTurn={isMyTurn}
@@ -920,6 +920,7 @@ export default function GamePage() {
           canResolvePending={canResolvePending}
           handleResolvePending={handleResolvePending}
           handleDrawFromMarket={handleDrawFromMarket}
+          isDrawing={executeMove.isPending && action === 2}
           handleRevealHand={handleRevealHand}
           canRevealHand={canRevealHand}
           isRevealingHand={isRevealingHand}
@@ -976,9 +977,10 @@ export default function GamePage() {
       {viewMode === "tech" ? (
         <TechGameView
           loadingGame={loadingGame}
-          gameData={gameData}
+          gameData={gameData!}
           callCardDisplay={callCardDisplay}
           isMyTurn={isMyTurn}
+          isSpectator={isSpectator}
           joinHandler={joinHandler}
           startHandler={startHandler}
           joinDisabled={joinDisabled}
@@ -1005,6 +1007,9 @@ export default function GamePage() {
           pendingPickCount={pendingPickCount}
           handleResolvePending={handleResolvePending}
           canResolvePending={canResolvePending}
+          canDraw={canDraw}
+          handleDrawFromMarket={handleDrawFromMarket}
+          isDrawing={executeMove.isPending && action === 2}
           action={action}
           setAction={setAction}
           cardIndex={cardIndex}
