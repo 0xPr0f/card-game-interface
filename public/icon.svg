@@ -1,26 +1,177 @@
-<svg width="180" height="180" viewBox="0 0 180 180" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <style>
-    @media (prefers-color-scheme: light) {
-      .background { fill: black; }
-      .foreground { fill: white; }
-    }
-    @media (prefers-color-scheme: dark) {
-      .background { fill: white; }
-      .foreground { fill: black; }
-    }
-  </style>
-  <g clip-path="url(#clip0_7960_43945)">
-    <rect class="background" width="180" height="180" rx="37" />
-    <g style="transform: scale(95%); transform-origin: center">
-      <path class="foreground"
-        d="M101.141 53H136.632C151.023 53 162.689 64.6662 162.689 79.0573V112.904H148.112V79.0573C148.112 78.7105 148.098 78.3662 148.072 78.0251L112.581 112.898C112.701 112.902 112.821 112.904 112.941 112.904H148.112V126.672H112.941C98.5504 126.672 86.5638 114.891 86.5638 100.5V66.7434H101.141V100.5C101.141 101.15 101.191 101.792 101.289 102.422L137.56 66.7816C137.255 66.7563 136.945 66.7434 136.632 66.7434H101.141V53Z" />
-      <path class="foreground"
-        d="M65.2926 124.136L14 66.7372H34.6355L64.7495 100.436V66.7372H80.1365V118.47C80.1365 126.278 70.4953 129.958 65.2926 124.136Z" />
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="903.58352 99.89340 197.35558 312.69339">
+    <g id="g186" style="stroke:none">
+      <rect
+         style="fill:#8b2037;fill-opacity:1;stroke:none;stroke-width:1.02658;stroke-opacity:1"
+         id="rect131"
+         width="197.35558"
+         height="312.69339"
+         x="-1100.9391"
+         y="-412.58679"
+         transform="scale(-1)"
+         ry="14.26859" />
+      <g
+         id="g161"
+         transform="translate(4)"
+         style="stroke:none">
+        <rect
+           style="fill:#8b2037;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:0.137037;stroke-opacity:1"
+           id="rect133"
+           width="0.81471968"
+           height="1.1406075"
+           x="1064.9617"
+           y="332.93375" />
+        <text
+           xml:space="preserve"
+           style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:53.9416px;font-family:serif;letter-spacing:-1.9763px;fill:#ffffff;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:2.0051;stroke-dasharray:none;stroke-opacity:1"
+           x="1077.618"
+           y="282.95062"
+           id="text134"
+           transform="scale(0.95246331,1.0499092)"><tspan
+             id="tspan134"
+             x="1077.618"
+             y="282.95062"
+             style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:53.9416px;font-family:serif;letter-spacing:-1.9763px;fill:#ffffff;fill-opacity:1;stroke-width:2.0051;stroke:none">ot</tspan></text>
+        <path
+           style="fill:#ffffff;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:1.88976;stroke-dasharray:none;stroke-opacity:1"
+           d="m 772.21401,232.1983 c -0.17304,-0.46574 -6.07938,-1.74336 -8.92667,0.3656 -2.8473,2.10896 -2.63531,7.60421 -0.54746,10.45383 2.08786,2.84963 6.05128,3.05327 7.94291,1.3843 1.89163,-1.66897 1.71118,-5.21031 0.4834,-5.36621 -1.22779,-0.1559 -3.50275,3.07369 -5.32732,2.46061 -1.82457,-0.61308 -3.19852,-5.06876 -1.1053,-7.12365 2.09323,-2.05489 7.65349,-1.70873 7.48044,-2.17448 z"
+           id="path134"
+           transform="matrix(1.527006,0,0,1.5974775,-237.59306,-111.89787)" />
+        <text
+           xml:space="preserve"
+           style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:60.8098px;font-family:serif;letter-spacing:-1.9763px;fill:#ffffff;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:1.43645;stroke-dasharray:none;stroke-opacity:1"
+           x="935.6593"
+           y="297.6832"
+           id="text135"><tspan
+             id="tspan135"
+             x="935.6593"
+             y="297.6832"
+             style="fill:#ffffff;fill-opacity:1;stroke-width:1.43645;stroke:none">W</tspan></text>
+        <text
+           xml:space="preserve"
+           style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:55.7421px;font-family:serif;letter-spacing:-1.9763px;fill:#ffffff;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:1.43645;stroke-dasharray:none;stroke-opacity:1"
+           x="995.68213"
+           y="297.92892"
+           id="text136"><tspan
+             id="tspan136"
+             x="995.68213"
+             y="297.92892"
+             style="fill:#ffffff;fill-opacity:1;stroke-width:1.43645;stroke:none">h</tspan></text>
+        <text
+           xml:space="preserve"
+           style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:53.9416px;font-family:serif;letter-spacing:-1.9763px;fill:#ffffff;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:2.0051;stroke-dasharray:none;stroke-opacity:1"
+           x="1077.618"
+           y="282.95062"
+           id="text137"
+           transform="scale(0.95246331,1.0499092)"><tspan
+             id="tspan137"
+             x="1077.618"
+             y="282.95062"
+             style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:53.9416px;font-family:serif;letter-spacing:-1.9763px;fill:#ffffff;fill-opacity:1;stroke-width:2.0051;stroke:none">ot</tspan></text>
+        <path
+           style="fill:#ffffff;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:1.88976;stroke-dasharray:none;stroke-opacity:1"
+           d="m 772.21401,232.1983 c -0.17304,-0.46574 -6.07938,-1.74336 -8.92667,0.3656 -2.8473,2.10896 -2.63531,7.60421 -0.54746,10.45383 2.08786,2.84963 6.05128,3.05327 7.94291,1.3843 1.89163,-1.66897 1.71118,-5.21031 0.4834,-5.36621 -1.22779,-0.1559 -3.50275,3.07369 -5.32732,2.46061 -1.82457,-0.61308 -3.19852,-5.06876 -1.1053,-7.12365 2.09323,-2.05489 7.65349,-1.70873 7.48044,-2.17448 z"
+           id="path137"
+           transform="matrix(1.527006,0,0,1.5974775,-237.59306,-111.89787)" />
+        <text
+           xml:space="preserve"
+           style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:60.8098px;font-family:serif;letter-spacing:-1.9763px;fill:#ffffff;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:1.43645;stroke-dasharray:none;stroke-opacity:1"
+           x="935.6593"
+           y="297.6832"
+           id="text138"><tspan
+             id="tspan138"
+             x="935.6593"
+             y="297.6832"
+             style="fill:#ffffff;fill-opacity:1;stroke-width:1.43645;stroke:none">W</tspan></text>
+        <text
+           xml:space="preserve"
+           style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:55.7421px;font-family:serif;letter-spacing:-1.9763px;fill:#ffffff;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:1.43645;stroke-dasharray:none;stroke-opacity:1"
+           x="995.68213"
+           y="297.92892"
+           id="text139"><tspan
+             id="tspan139"
+             x="995.68213"
+             y="297.92892"
+             style="fill:#ffffff;fill-opacity:1;stroke-width:1.43645;stroke:none">h</tspan></text>
+        <text
+           xml:space="preserve"
+           style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:53.9416px;font-family:serif;letter-spacing:-1.9763px;fill:#ffffff;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:2.0051;stroke-dasharray:none;stroke-opacity:1"
+           x="-1016.9379"
+           y="-198.27551"
+           id="text140"
+           transform="scale(-0.95246331,-1.0499092)"><tspan
+             id="tspan140"
+             x="-1016.9379"
+             y="-198.27551"
+             style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:53.9416px;font-family:serif;letter-spacing:-1.9763px;fill:#ffffff;fill-opacity:1;stroke-width:2.0051;stroke:none">ot</tspan></text>
+        <path
+           style="fill:#ffffff;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:1.88976;stroke-dasharray:none;stroke-opacity:1"
+           d="m 772.21401,232.1983 c -0.17304,-0.46574 -6.07938,-1.74336 -8.92667,0.3656 -2.8473,2.10896 -2.63531,7.60421 -0.54746,10.45383 2.08786,2.84963 6.05128,3.05327 7.94291,1.3843 1.89163,-1.66897 1.71118,-5.21031 0.4834,-5.36621 -1.22779,-0.1559 -3.50275,3.07369 -5.32732,2.46061 -1.82457,-0.61308 -3.19852,-5.06876 -1.1053,-7.12365 2.09323,-2.05489 7.65349,-1.70873 7.48044,-2.17448 z"
+           id="path140"
+           transform="matrix(-1.527006,0,0,-1.5974775,2232.5848,617.14152)" />
+        <text
+           xml:space="preserve"
+           style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:60.8098px;font-family:serif;letter-spacing:-1.9763px;fill:#ffffff;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:1.43645;stroke-dasharray:none;stroke-opacity:1"
+           x="-1059.3325"
+           y="-207.56052"
+           id="text141"
+           transform="scale(-1)"><tspan
+             id="tspan141"
+             x="-1059.3325"
+             y="-207.56052"
+             style="fill:#ffffff;fill-opacity:1;stroke-width:1.43645;stroke:none">W</tspan></text>
+        <text
+           xml:space="preserve"
+           style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:55.7421px;font-family:serif;letter-spacing:-1.9763px;fill:#ffffff;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:1.43645;stroke-dasharray:none;stroke-opacity:1"
+           x="-999.30963"
+           y="-207.3147"
+           id="text142"
+           transform="scale(-1)"><tspan
+             id="tspan142"
+             x="-999.30963"
+             y="-207.3147"
+             style="fill:#ffffff;fill-opacity:1;stroke-width:1.43645;stroke:none">h</tspan></text>
+        <text
+           xml:space="preserve"
+           style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:53.9416px;font-family:serif;letter-spacing:-1.9763px;fill:#ffffff;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:2.0051;stroke-dasharray:none;stroke-opacity:1"
+           x="-1016.9379"
+           y="-198.27551"
+           id="text143"
+           transform="scale(-0.95246331,-1.0499092)"><tspan
+             id="tspan143"
+             x="-1016.9379"
+             y="-198.27551"
+             style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:53.9416px;font-family:serif;letter-spacing:-1.9763px;fill:#ffffff;fill-opacity:1;stroke-width:2.0051;stroke:none">ot</tspan></text>
+        <path
+           style="fill:#ffffff;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:1.88976;stroke-dasharray:none;stroke-opacity:1"
+           d="m 772.21401,232.1983 c -0.17304,-0.46574 -6.07938,-1.74336 -8.92667,0.3656 -2.8473,2.10896 -2.63531,7.60421 -0.54746,10.45383 2.08786,2.84963 6.05128,3.05327 7.94291,1.3843 1.89163,-1.66897 1.71118,-5.21031 0.4834,-5.36621 -1.22779,-0.1559 -3.50275,3.07369 -5.32732,2.46061 -1.82457,-0.61308 -3.19852,-5.06876 -1.1053,-7.12365 2.09323,-2.05489 7.65349,-1.70873 7.48044,-2.17448 z"
+           id="path143"
+           transform="matrix(-1.527006,0,0,-1.5974775,2232.5848,617.14152)" />
+        <g
+           id="g160"
+           style="stroke:none">
+          <text
+             xml:space="preserve"
+             style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:60.8098px;font-family:serif;letter-spacing:-1.9763px;fill:#ffffff;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:1.43645;stroke-dasharray:none;stroke-opacity:1"
+             x="-1059.3325"
+             y="-207.56052"
+             id="text144"
+             transform="scale(-1)"><tspan
+               id="tspan144"
+               x="-1059.3325"
+               y="-207.56052"
+               style="fill:#ffffff;fill-opacity:1;stroke-width:1.43645;stroke:none">W</tspan></text>
+        </g>
+        <text
+           xml:space="preserve"
+           style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:55.7421px;font-family:serif;letter-spacing:-1.9763px;fill:#ffffff;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:1.43645;stroke-dasharray:none;stroke-opacity:1"
+           x="-999.30963"
+           y="-207.3147"
+           id="text145"
+           transform="scale(-1)"><tspan
+             id="tspan145"
+             x="-999.30963"
+             y="-207.3147"
+             style="fill:#ffffff;fill-opacity:1;stroke-width:1.43645;stroke:none">h</tspan></text>
+      </g>
     </g>
-  </g>
-  <defs>
-    <clipPath id="clip0_7960_43945">
-      <rect width="180" height="180" fill="white" />
-    </clipPath>
-  </defs>
 </svg>

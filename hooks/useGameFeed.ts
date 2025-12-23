@@ -137,11 +137,13 @@ export function useGameFeed(publicClient: PublicClient | undefined) {
     // but for initialData we try to read synchronously if possible or just default empty.
     // Since this is a hook, we can just load it.
     const cachedFeed = loadFeedCache(cacheKey)
+    const hasCachedGames = Boolean(cachedFeed?.games?.length)
 
     return useQuery({
         queryKey: ["game-index", chainId],
         enabled: Boolean(publicClient),
-        initialData: cachedFeed?.games ?? [],
+        initialData: hasCachedGames ? cachedFeed?.games : undefined,
+        initialDataUpdatedAt: hasCachedGames ? cachedFeed?.updatedAt : undefined,
         queryFn: async () => {
             if (!publicClient) return []
             const cache = loadFeedCache(cacheKey)
