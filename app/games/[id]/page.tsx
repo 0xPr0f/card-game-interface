@@ -381,6 +381,7 @@ export default function GamePage() {
     createEip712,
     generateKeypair,
     status: fheStatus,
+    error: fheError,
   } = useFhevm()
   const chainId = publicClient?.chain?.id ?? activeChain.id
   const contracts = useMemo(() => getContracts(chainId), [chainId])
@@ -580,9 +581,10 @@ export default function GamePage() {
     if (!isConnected) return "Connect your wallet"
     if (!me) return "Join the game to reveal"
     if (!gameStarted) return "Game not started yet"
+    if (fheStatus === "error" && fheError?.message) return `FHE relayer error: ${fheError.message}`
     if (fheStatus !== "ready") return "FHE relayer not ready"
     return null
-  }, [fheStatus, gameStarted, isConnected, isRevealingHand, me])
+  }, [fheError?.message, fheStatus, gameStarted, isConnected, isRevealingHand, me])
   const callCardOnChain = gameData?.callCard ?? 0
   const callCardDisplay = callCardOnChain || cachedCallCard
   const callCardIsCached = callCardOnChain === 0 && cachedCallCard !== 0
@@ -653,7 +655,9 @@ export default function GamePage() {
       return
     }
     if (fheStatus !== "ready") {
-      toast.error("FHE relayer not ready")
+      toast.error("FHE relayer not ready", {
+        description: fheError?.message,
+      })
       return
     }
     setIsRevealingHand(true)
@@ -761,7 +765,9 @@ export default function GamePage() {
       return
     }
     if (fheStatus !== "ready") {
-      toast.error("FHE relayer not ready", { description: "Connect a wallet and try again." })
+      toast.error("FHE relayer not ready", {
+        description: fheError?.message ?? "Connect a wallet and try again.",
+      })
       return
     }
     setPendingProofData(null)
@@ -999,7 +1005,7 @@ export default function GamePage() {
     <div
       className={`mx-auto flex max-w-5xl flex-col px-3 sm:px-4 ${
         viewMode === "fun"
-          ? "min-h-[100svh] gap-3 py-3 sm:h-[100svh] sm:overflow-hidden sm:py-4"
+          ? "min-h-[100svh] gap-3 py-3 sm:py-4 lg:h-[100svh] lg:overflow-hidden"
           : "gap-4 py-6"
       }`}
     >
@@ -1485,7 +1491,7 @@ export default function GamePage() {
                           <div className="flex items-center justify-between gap-2">
                             <div className="flex items-center gap-2">
                               <div className="text-sm font-semibold">
-                                {isEmpty ? "Open" : `P#${player.index}`}
+                                {isEmpty ? "Open" : `Player#${player.index}`}
                               </div>
                               {!isEmpty && (
                                 <CopyToClipboard
@@ -1535,7 +1541,7 @@ export default function GamePage() {
                   <div>
                     <div className="text-xs font-medium text-muted-foreground">Table</div>
                     <div className="text-sm font-semibold">
-                      {["Open", "Started", "Ended"][gameData.status] ?? "Unknown"} | T#{gameData.playerTurnIdx}
+                      {["Open", "Started", "Ended"][gameData.status] ?? "Unknown"} | Turn #{gameData.playerTurnIdx}
                     </div>
                   </div>
                   <div className="text-xs text-muted-foreground">

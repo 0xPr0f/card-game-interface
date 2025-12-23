@@ -26,13 +26,32 @@ export type UserDecryptParams = {
   durationDays: number
 }
 
-const buildConfig = () => {
+const resolveRpcUrl = () => {
+  if (env.rpcUrls.length) return env.rpcUrls[0]
+  if (env.rpcUrl) return env.rpcUrl
+  return SepoliaConfig.network
+}
+
+const resolveNetwork = async (rpcUrl: string) => {
+  if (typeof window === "undefined") return rpcUrl
+  const provider = (window as { ethereum?: { request?: (args: { method: string }) => Promise<string> } })
+    .ethereum
+  if (!provider?.request) return rpcUrl
+  try {
+    const chainIdHex = await provider.request({ method: "eth_chainId" })
+    const chainId = typeof chainIdHex === "string" ? Number.parseInt(chainIdHex, 16) : Number(chainIdHex)
+    if (Number.isFinite(chainId) && chainId === activeChain.id) {
+      return provider
+    }
+  } catch {
+    // ignore provider chain detection failures
+  }
+  return rpcUrl
+}
+
+const buildConfig = (network: unknown) => {
   const base = SepoliaConfig
   const relayerUrl = env.relayerUrl || base.relayerUrl
-  const network =
-    typeof window !== "undefined" && (window as { ethereum?: unknown }).ethereum
-      ? (window as { ethereum: unknown }).ethereum
-      : env.rpcUrl || base.network
   return {
     ...base,
     chainId: activeChain.id,
@@ -57,7 +76,18 @@ export function useFhevm() {
       setStatus("loading")
       try {
         await initSDK()
-        const instance = await createInstance(buildConfig())
+        const rpcUrl = resolveRpcUrl()
+        const network = await resolveNetwork(rpcUrl)
+        let instance: FhevmInstance | null = null
+        try {
+          instance = await createInstance(buildConfig(network))
+        } catch (err) {
+          if (network !== rpcUrl) {
+            instance = await createInstance(buildConfig(rpcUrl))
+          } else {
+            throw err
+          }
+        }
         if (!mounted) return
         instanceRef.current = instance
         setStatus("ready")
