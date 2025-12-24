@@ -297,7 +297,7 @@ export const MarketDeckFan = ({
       ))}
 
       {isLoading ? (
-        <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/20 rounded-lg">
+        <div className="absolute -inset-x-2 -bottom-4 top-0 z-10 flex items-center justify-center bg-black/20 rounded-xl">
           <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
         </div>
       ) : null}

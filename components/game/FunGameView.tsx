@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Loader2 } from "lucide-react"
+import { Loader2, X } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -337,7 +337,16 @@ export function FunGameView({
 
               {shouldShowWishShape ? (
                 <div className="mt-3 rounded-2xl border border-border bg-secondary/40 p-3">
-                  <div className="text-xs font-medium text-muted-foreground">Whot wish</div>
+                  <div className="flex items-center justify-between">
+                    <div className="text-xs font-medium text-muted-foreground">Whot wish</div>
+                    <button
+                      type="button"
+                      onClick={() => setAction(2)}
+                      className="rounded-full p-1 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  </div>
                   <div className="text-xs text-muted-foreground">
                     Choose a shape for {selectedCard?.label ?? "Whot-20"}.
                   </div>
@@ -837,7 +846,16 @@ export function FunGameView({
 
             {shouldShowWishShape ? (
               <div className="relative z-30 mt-3 rounded-2xl border border-border bg-secondary/95 p-4 shadow-2xl backdrop-blur-sm animate-in fade-in slide-in-from-bottom-2">
-                <div className="text-xs font-medium text-muted-foreground">Whot wish</div>
+                <div className="flex items-center justify-between">
+                  <div className="text-xs font-medium text-muted-foreground">Whot wish</div>
+                  <button
+                    type="button"
+                    onClick={() => setAction(2)}
+                    className="rounded-full p-1 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
                 <div className="text-xs text-muted-foreground">
                   Choose a shape for {selectedCard?.label ?? "Whot-20"}.
                 </div>

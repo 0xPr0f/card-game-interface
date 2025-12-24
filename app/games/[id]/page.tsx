@@ -181,7 +181,7 @@ export default function GamePage() {
 
   const [action, setAction] = useState<number>(0)
   const [cardIndex, setCardIndex] = useState("")
-  const [wishShape, setWishShape] = useState("0")
+  const [wishShape, setWishShape] = useState("")
   const [bootTarget, setBootTarget] = useState("")
   const [pendingProofData, setPendingProofData] = useState<`0x${string}` | null>(null)
   const [pendingCardIndex, setPendingCardIndex] = useState<number | null>(null)
