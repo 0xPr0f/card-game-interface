@@ -199,6 +199,7 @@ export default function GamePage() {
   const [cachedCallCard, setCachedCallCard] = useState(0)
   const [burnerAddress, setBurnerAddress] = useState<string | null>(null)
   const [lastHandSignature, setLastHandSignature] = useState<string | null>(null)
+  const [isDrawingFromMarket, setIsDrawingFromMarket] = useState(false)
   const autoRevealRef = useRef(false)
   const queryClient = useQueryClient()
 
@@ -370,6 +371,16 @@ export default function GamePage() {
     gameData?.status === 0 &&
     (gameData?.playersLeftToJoin === 0 || (isCreator && gameData?.playersJoined > 1))
   const gameStarted = gameData?.status === 1
+  const gameEnded = gameData?.status === 2
+  // Find winner: player with lowest card count (fewest cards = lowest score in Whot)
+  const winner = useMemo(() => {
+    if (!gameEnded || !players.length) return null
+    const activePlayers = players.filter(p => !p.forfeited && p.addr !== ZERO_ADDRESS)
+    if (!activePlayers.length) return null
+    return activePlayers.reduce((best, p) => 
+      p.cards.length < best.cards.length ? p : best
+    )
+  }, [gameEnded, players])
   const isMyTurn = Boolean(me && gameData && gameData.playerTurnIdx === me.index)
   const pendingPickCount = me?.pendingAction ?? 0
   const mustResolvePending = Boolean(gameStarted && isMyTurn && pendingPickCount > 0)
@@ -403,21 +414,25 @@ export default function GamePage() {
   )
   const currentHandSignature = useMemo(() => {
     if (!me) return null
-    return `${me.deckMap.toString()}-${me.hand0.toString()}-${me.hand1.toString()}`
-  }, [me?.deckMap, me?.hand0, me?.hand1])
+    // Only track player's own hand data, not deckMap which changes on any player's action
+    return `${me.hand0.toString()}-${me.hand1.toString()}`
+  }, [me?.hand0, me?.hand1])
   const hasStoredProof = Boolean(pendingProofData)
   const hasCommittedOnChain = commitmentHash !== 0n
   const hasPendingCommit = hasStoredProof || hasCommittedOnChain
   const actionLabel = ACTIONS.find((item) => item.value === action)?.label ?? "Play"
   const pendingActionLabel =
     ACTIONS.find((item) => item.value === (pendingAction ?? action))?.label ?? actionLabel
-  const pendingCommitStatus = isDecrypting
-    ? "Decrypting committed card..."
-    : pendingProofData
-      ? `Proof ready for idx ${pendingCardIndex ?? "?"}`
-      : hasCommittedOnChain
-        ? "Committed move detected. Break or re-commit to proceed."
-        : "No committed card yet."
+  // Only show commit/proof status when it's the current player's turn
+  const pendingCommitStatus = !isMyTurn
+    ? "Waiting for your turn."
+    : isDecrypting
+      ? "Decrypting committed card..."
+      : pendingProofData
+        ? `Proof ready for idx ${pendingCardIndex ?? "?"}`
+        : hasCommittedOnChain
+          ? "Committed move detected. Break or re-commit to proceed."
+          : "No committed card yet."
   const canCommitSelected = Boolean(
     isConnected &&
       canPlayTurn &&
@@ -548,10 +563,12 @@ export default function GamePage() {
       setMyHand(cards)
       setHandUpdatedAt(Date.now())
       setHandStale(false)
-      setLastHandSignature(`${me.deckMap.toString()}-${me.hand0.toString()}-${me.hand1.toString()}`)
+      setLastHandSignature(`${me.hand0.toString()}-${me.hand1.toString()}`)
     } catch (err) {
       const message = err instanceof Error ? err.message : "Hand decrypt failed"
       setHandError(message)
+      // Still set lastHandSignature to prevent continuous retry on error
+      setLastHandSignature(`${me.hand0.toString()}-${me.hand1.toString()}`)
       toast.error("Hand decrypt failed", { description: message })
     } finally {
       setIsRevealingHand(false)
@@ -766,6 +783,7 @@ export default function GamePage() {
       toast.error("You can draw only on your turn")
       return
     }
+    setIsDrawingFromMarket(true)
     try {
       await executeMove.mutateAsync({
         gameId,
@@ -783,6 +801,8 @@ export default function GamePage() {
       toast.success("Draw submitted", { description: "Waiting for MoveExecuted." })
     } catch (err) {
       toast.error("Draw failed", { description: describeViemError(err) })
+    } finally {
+      setIsDrawingFromMarket(false)
     }
   }
 
@@ -907,6 +927,8 @@ export default function GamePage() {
           gameData={gameData!}
           isSpectator={isSpectator}
           gameStarted={gameStarted}
+          gameEnded={gameEnded}
+          winner={winner}
           isMyTurn={isMyTurn}
           loadingPlayers={loadingPlayers}
           funPlayers={funPlayers}
@@ -920,7 +942,7 @@ export default function GamePage() {
           canResolvePending={canResolvePending}
           handleResolvePending={handleResolvePending}
           handleDrawFromMarket={handleDrawFromMarket}
-          isDrawing={executeMove.isPending && action === 2}
+          isDrawing={isDrawingFromMarket}
           handleRevealHand={handleRevealHand}
           canRevealHand={canRevealHand}
           isRevealingHand={isRevealingHand}
@@ -1009,7 +1031,7 @@ export default function GamePage() {
           canResolvePending={canResolvePending}
           canDraw={canDraw}
           handleDrawFromMarket={handleDrawFromMarket}
-          isDrawing={executeMove.isPending && action === 2}
+          isDrawing={isDrawingFromMarket}
           action={action}
           setAction={setAction}
           cardIndex={cardIndex}

@@ -403,7 +403,7 @@ export function TechGameView({
             <Button
               variant="outline"
               onClick={handleBreakCommitment}
-              disabled={!isConnected || !gameStarted || !hasPendingCommit || breakPending}
+              disabled={!isConnected || !gameStarted || !isMyTurn || !hasPendingCommit || breakPending}
             >
               {breakPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
               Break commitment

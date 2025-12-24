@@ -38,13 +38,19 @@ const resolveNetwork = async (rpcUrl: string) => {
     .ethereum
   if (!provider?.request) return rpcUrl
   try {
-    const chainIdHex = await provider.request({ method: "eth_chainId" })
+    // Add timeout to prevent hanging on unresponsive wallets
+    const timeoutPromise = new Promise<null>((_, reject) =>
+      setTimeout(() => reject(new Error("Wallet timeout")), 3000)
+    )
+    const chainIdPromise = provider.request({ method: "eth_chainId" })
+    const chainIdHex = await Promise.race([chainIdPromise, timeoutPromise])
+    if (!chainIdHex) return rpcUrl
     const chainId = typeof chainIdHex === "string" ? Number.parseInt(chainIdHex, 16) : Number(chainIdHex)
     if (Number.isFinite(chainId) && chainId === activeChain.id) {
       return provider
     }
   } catch {
-    // ignore provider chain detection failures
+    // Wallet not available or timed out - use RPC URL (works for burner wallets)
   }
   return rpcUrl
 }
@@ -64,6 +70,23 @@ export function useFhevm() {
   const [status, setStatus] = useState<FhevmStatus>("idle")
   const [error, setError] = useState<Error | null>(null)
   const instanceRef = useRef<FhevmInstance | null>(null)
+  const [retryCount, setRetryCount] = useState(0)
+  const maxRetries = 3
+
+  // Allow retry by incrementing counter
+  const retry = useCallback(() => {
+    instanceRef.current = null
+    setRetryCount(c => c + 1)
+  }, [])
+
+  // Auto-retry on error after 5 seconds (up to maxRetries)
+  useEffect(() => {
+    if (status !== "error" || retryCount >= maxRetries) return
+    const timer = setTimeout(() => {
+      retry()
+    }, 5000)
+    return () => clearTimeout(timer)
+  }, [status, retryCount, retry])
 
   useEffect(() => {
     let mounted = true
@@ -74,6 +97,7 @@ export function useFhevm() {
         return
       }
       setStatus("loading")
+      setError(null)
       try {
         await initSDK()
         const rpcUrl = resolveRpcUrl()
@@ -82,6 +106,7 @@ export function useFhevm() {
         try {
           instance = await createInstance(buildConfig(network))
         } catch (err) {
+          // If wallet provider failed, try with RPC URL directly
           if (network !== rpcUrl) {
             instance = await createInstance(buildConfig(rpcUrl))
           } else {
@@ -102,7 +127,7 @@ export function useFhevm() {
     return () => {
       mounted = false
     }
-  }, [])
+  }, [retryCount]) // Re-run when retry is triggered
 
   const publicDecrypt = useCallback(
     async (handles: (string | Uint8Array)[]) => {
@@ -177,7 +202,8 @@ export function useFhevm() {
       generateKeypair,
       status,
       error,
+      retry,
     }),
-    [publicDecrypt, userDecrypt, createEip712, generateKeypair, status, error],
+    [publicDecrypt, userDecrypt, createEip712, generateKeypair, status, error, retry],
   )
 }

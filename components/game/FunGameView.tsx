@@ -18,6 +18,8 @@ type FunGameViewProps = {
   gameData: GameData | null
   isSpectator: boolean
   gameStarted: boolean
+  gameEnded: boolean
+  winner: PlayerRow | null
   isMyTurn: boolean
   loadingPlayers: boolean
   funPlayers: PlayerRow[]
@@ -90,6 +92,8 @@ export function FunGameView({
   gameData,
   isSpectator,
   gameStarted,
+  gameEnded,
+  winner,
   isMyTurn,
   loadingPlayers,
   funPlayers,
@@ -175,6 +179,26 @@ export function FunGameView({
       ) : !gameData ? (
         <div className="mt-6 rounded-xl border border-dashed bg-white p-4 text-sm text-muted-foreground">
           No game data found.
+        </div>
+      ) : gameEnded ? (
+        <div className="flex flex-1 flex-col items-center justify-center gap-6 p-8">
+          <div className="text-6xl">🏆</div>
+          <div className="text-center">
+            <h2 className="text-2xl font-bold text-primary">Game Over!</h2>
+            {winner ? (
+              <p className="mt-2 text-lg text-muted-foreground">
+                Winner: <span className="font-semibold text-foreground">{formatAddr(winner.addr)}</span>
+                {winner.addr.toLowerCase() === address?.toLowerCase() && (
+                  <span className="ml-2 text-emerald-500">(You!)</span>
+                )}
+              </p>
+            ) : (
+              <p className="mt-2 text-muted-foreground">No winner determined.</p>
+            )}
+          </div>
+          <Button variant="outline" asChild>
+            <a href="/">Back to Games</a>
+          </Button>
         </div>
       ) : isSpectator ? (
         <div className="grid min-h-0 flex-1 gap-3 sm:gap-4 lg:grid-cols-3">
@@ -318,7 +342,7 @@ export function FunGameView({
                     Choose a shape for {selectedCard?.label ?? "Whot-20"}.
                   </div>
                   <div className="mt-2 flex flex-wrap gap-2">
-                    {CARD_SHAPES.map((shape, idx) => (
+                    {CARD_SHAPES.filter((_, idx) => idx !== 5).map((shape, idx) => (
                       <Button
                         key={shape}
                         size="sm"
@@ -395,7 +419,7 @@ export function FunGameView({
                       size="sm"
                       variant="outline"
                       onClick={handleBreakCommitment}
-                      disabled={!gameStarted || breakPending || !hasPendingCommit}
+                      disabled={!gameStarted || !isMyTurn || breakPending || !hasPendingCommit}
                     >
                       {breakPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
                       Break
@@ -818,7 +842,7 @@ export function FunGameView({
                   Choose a shape for {selectedCard?.label ?? "Whot-20"}.
                 </div>
                 <div className="mt-2 flex flex-wrap gap-2">
-                  {CARD_SHAPES.map((shape, idx) => (
+                  {CARD_SHAPES.filter((_, idx) => idx !== 5).map((shape, idx) => (
                     <Button
                       key={shape}
                       size="sm"
@@ -894,7 +918,7 @@ export function FunGameView({
                       size="sm"
                       variant="outline"
                       onClick={handleBreakCommitment}
-                      disabled={!gameStarted || breakPending || !hasPendingCommit}
+                      disabled={!gameStarted || !isMyTurn || breakPending || !hasPendingCommit}
                     >
                       {breakPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
                       Break
