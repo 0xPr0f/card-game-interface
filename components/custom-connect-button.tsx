@@ -105,8 +105,10 @@ function BalanceLabel({ address, fallback }: { address?: Address; fallback?: str
   const { data: balance } = useBalance({
     address,
     chainId: chainId ?? activeChain.id,
-    query: { enabled: Boolean(address) },
-    watch: true,
+    query: { 
+      enabled: Boolean(address),
+      refetchInterval: 10_000, // Poll every 10s
+    },
   })
   const formattedBalance = useMemo(() => {
     if (!balance) return null
