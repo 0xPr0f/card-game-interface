@@ -490,38 +490,41 @@ export default function GamePage() {
     // The cache will be re-validated when user reveals or on auto-reveal
     setHandStale(true)
   }, [me?.deckMap?.toString(), me?.hand0?.toString(), me?.hand1?.toString(), address])
-
+  // Ref to track if we've attempted to load proof from cache for this game
+  const proofLoadedRef = useRef<string | null>(null)
+  
+  // Load proof from cache ONCE when commitment hash becomes available
   useEffect(() => {
     if (!address || !gameId) return
-    // IMPORTANT: Don't clear while commitment query is still loading
-    // This prevents race condition where cache is cleared before we know if there's a commitment
+    // Don't do anything while still loading
     if (loadingCommitment) return
-    if (!hasCommittedOnChain) {
+    // Already loaded for this game/address combo
+    const loadKey = `${gameKey}:${address}`
+    if (proofLoadedRef.current === loadKey) return
+    
+    if (hasCommittedOnChain) {
+      // Has commitment - try to load proof from cache
+      if (!pendingProofData) {
+        const cached = loadPendingCommit(chainId, gameKey, address)
+        if (cached) {
+          setPendingProofData(cached.proofData)
+          setPendingCardIndex(cached.cardIndex)
+          setPendingAction(cached.action)
+        }
+      }
+      // Mark as loaded whether we found cache or not
+      proofLoadedRef.current = loadKey
+    } else {
+      // No commitment on chain - clear any stale proof state
       if (pendingProofData || pendingCardIndex !== null || pendingAction !== null) {
         setPendingProofData(null)
         setPendingCardIndex(null)
         setPendingAction(null)
       }
       clearPendingCommit(chainId, gameKey, address)
-      return
+      proofLoadedRef.current = loadKey
     }
-    if (pendingProofData) return
-    const cached = loadPendingCommit(chainId, gameKey, address)
-    if (!cached) return
-    setPendingProofData(cached.proofData)
-    setPendingCardIndex(cached.cardIndex)
-    setPendingAction(cached.action)
-  }, [
-    address,
-    chainId,
-    gameId,
-    gameKey,
-    loadingCommitment,
-    hasCommittedOnChain,
-    pendingAction,
-    pendingCardIndex,
-    pendingProofData,
-  ])
+  }, [address, chainId, gameId, gameKey, loadingCommitment, hasCommittedOnChain, pendingProofData, pendingCardIndex, pendingAction])
 
   const parseClearValue = (value: unknown): bigint => {
     if (typeof value === "bigint") return value
