@@ -343,7 +343,7 @@ export default function GamePage() {
     },
   })
 
-  const { data: commitmentHash = 0n } = useQuery({
+  const { data: commitmentHash = 0n, isLoading: loadingCommitment } = useQuery({
     queryKey: ["commitment", chainId, gameKey],
     enabled: Boolean(publicClient && gameId),
     refetchInterval: 10_000,
@@ -493,6 +493,9 @@ export default function GamePage() {
 
   useEffect(() => {
     if (!address || !gameId) return
+    // IMPORTANT: Don't clear while commitment query is still loading
+    // This prevents race condition where cache is cleared before we know if there's a commitment
+    if (loadingCommitment) return
     if (!hasCommittedOnChain) {
       if (pendingProofData || pendingCardIndex !== null || pendingAction !== null) {
         setPendingProofData(null)
@@ -513,6 +516,7 @@ export default function GamePage() {
     chainId,
     gameId,
     gameKey,
+    loadingCommitment,
     hasCommittedOnChain,
     pendingAction,
     pendingCardIndex,
