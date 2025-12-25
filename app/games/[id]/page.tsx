@@ -11,6 +11,7 @@ import {
   encodeAbiParameters,
   parseEventLogs,
   toHex,
+  toBytes,
   type Address,
   type Hex,
 } from "viem"
@@ -710,12 +711,16 @@ export default function GamePage() {
     setPendingCardIndex(null)
     setPendingAction(null)
     setIsDecrypting(true)
+    let commitSucceeded = false
     try {
       setCardIndex(parsedIndex.toString())
+      // 1. Send transaction
       const tx = await commitMove.mutateAsync({
         gameId,
         cardIndex: parsedIndex,
       })
+      commitSucceeded = true // Mark transaction as successful
+
       const parsed = parseEventLogs({
         abi: cardEngineAbi,
         eventName: "MoveCommitted",
@@ -727,6 +732,8 @@ export default function GamePage() {
       if (!encryptedCard || committedIdx === undefined) {
         throw new Error("MoveCommitted event not found")
       }
+
+      // 2. Decrypt and Generate Proof
       const decrypted = await publicDecrypt([encryptedCard])
       const indexValue = Number(committedIdx)
       if (!Number.isFinite(indexValue) || indexValue < 0 || indexValue > 255) {
@@ -741,6 +748,7 @@ export default function GamePage() {
         ],
         [decrypted.decryptionProof, encryptedCard, decrypted.abiEncodedClearValues, indexValue],
       ) as `0x${string}`
+      
       setPendingProofData(proofData)
       setPendingCardIndex(indexValue)
       setPendingAction(commitAction)
@@ -754,7 +762,15 @@ export default function GamePage() {
       }
       toast.success("Move committed", { description: "Decryption proof ready. Execute your action." })
     } catch (err) {
-      toast.error("Commit failed", { description: describeViemError(err) })
+      if (commitSucceeded) {
+        // Transaction worked, but proof failed. Don't say "Commit failed".
+        toast.warning("Commit successful, but proof generation failed", {
+          description: "Please click 'Regenerate Proof' to continue.",
+          duration: 6000,
+        })
+      } else {
+        toast.error("Commit failed", { description: describeViemError(err) })
+      }
     } finally {
       setIsDecrypting(false)
     }
@@ -822,7 +838,10 @@ export default function GamePage() {
     try {
       // Fetch the MoveCommitted event from chain
       // ABI: event MoveCommitted(uint256 indexed gameId, euint8 cardToCommit, uint256 cardIndex);
-      // euint8 is a handle (uint256)
+      const currentBlock = await publicClient.getBlockNumber()
+      // Alchemy Free Tier limits block range. We assume the game started reasonably recently.
+      const fromBlock = currentBlock > 50000n ? currentBlock - 50000n : 0n // Look back ~50k blocks
+
       const logs = await publicClient.getLogs({
         address: contracts.cardEngine as Address,
         event: {
@@ -835,35 +854,37 @@ export default function GamePage() {
           ],
         },
         args: { gameId },
-        fromBlock: "earliest",
+        fromBlock,
         toBlock: "latest",
       })
       // Get the most recent commitment for this game
       const latestLog = logs[logs.length - 1]
       if (!latestLog) {
-        throw new Error("MoveCommitted event not found")
+        throw new Error("MoveCommitted event not found. Try committing again or checking block range.")
       }
       
       const encryptedCardHandle = latestLog.args.cardToCommit as bigint
       const committedIdx = latestLog.args.cardIndex as bigint
       
+      console.log("Regenerate Proof - Handle:", encryptedCardHandle, "Index:", committedIdx)
+
       if (encryptedCardHandle === undefined || committedIdx === undefined) {
         throw new Error("Invalid commitment event data")
       }
 
-      // Convert handle to hex string for publicDecrypt and proof encoding
-      const encryptedCardHex = toHex(encryptedCardHandle, { size: 32 })
-
-      // Decrypt using the handle (fhevm expects hex string handle)
-      const decrypted = await publicDecrypt([encryptedCardHex])
+      // Convert handle to Uint8Array (32 bytes) for publicDecrypt
+      const encryptedCardBytes = toBytes(encryptedCardHandle, { size: 32 })
+      const decrypted = await publicDecrypt([encryptedCardBytes])
       
       const indexValue = Number(committedIdx)
       if (!Number.isFinite(indexValue) || indexValue < 0 || indexValue > 255) {
         throw new Error("Committed card index out of range")
       }
       
-      // encryptedCardHex is already 32 bytes hex string, suitable for bytes32 encoding
+      // Convert handle to hex string for proof encoding (bytes32)
+      const encryptedCardHex = toHex(encryptedCardHandle, { size: 32 })
       
+      // encryptedCardHex is bytes32 hex string, perfect for encoding
       const proofData = encodeAbiParameters(
         [
           { type: "bytes" },
