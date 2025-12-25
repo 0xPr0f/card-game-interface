@@ -197,47 +197,60 @@ export function NewHome() {
       </header>
 
       <main className="flex-1 container mx-auto px-4 py-8 space-y-10">
-        {/* Hero Section */}
-        <section className="relative flex flex-col items-center gap-8 py-10 text-center lg:py-16 overflow-hidden">
-          <div className="absolute top-0 right-0 -z-10 opacity-10 blur-3xl transform translate-x-1/4 -translate-y-1/4">
-             <div className="mr-[-200px] h-[300px] w-[300px] rounded-full bg-primary/50" />
-          </div>
-          <div className="absolute bottom-0 left-0 -z-10 opacity-10 blur-3xl transform -translate-x-1/4 translate-y-1/4">
-             <div className="h-[200px] w-[200px] rounded-full bg-primary/50" />
-          </div>
+          {/* Hero Section */}
+          <div className="relative pt-12 sm:pt-24 pb-12 sm:pb-20 text-center max-w-4xl mx-auto px-2 sm:px-4">
 
-          <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
-             <div className="relative h-56 h-40 sm:h-40 w-64 mx-auto rotate-[-5deg] hover:rotate-0 transition-transform duration-500 mb-12 sm:mb-8">
-                <div className="absolute top-0 left-0 transform -rotate-12 translate-x-[-30px] drop-shadow-2xl transition-transform hover:-translate-y-2">
-                    <WhotCard variant="back" className="w-32 shadow-none rounded-[8px]" />
+            {/* Decorative Gradient Blob */}
+            <div className="absolute top-10 left-1/2 -translate-x-1/2 w-[500px] h-[500px] bg-gradient-to-tr from-red-100/40 to-orange-50/40 rounded-full blur-3xl -z-10 pointer-events-none" />
+
+            {/* 3D Cards Visual - PRESERVED HERO CARD DESIGN */}
+            <div className="relative h-48 sm:h-72 mb-12 sm:mb-10 group cursor-pointer">
+              <div className="relative w-full h-full">
+
+                {/* Left Card */}
+                <div className="absolute inset-0 animate-float-slow">
+                  <div className="absolute top-0 left-1/2 -translate-x-1/2 mt-4 origin-bottom-right transform -rotate-[15deg] transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] group-hover:-rotate-[35deg] group-hover:-translate-x-[90%] drop-shadow-2xl">
+                    <WhotCard variant="back" className="w-32 sm:w-40 shadow-none rounded-[8px]" />
+                  </div>
                 </div>
-                <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-6 z-10 drop-shadow-2xl transition-transform hover:-translate-y-2">
-                    <WhotCard shape="Whot" number={20} className="w-36 shadow-none border-[1px] border-white/10 rounded-[8px]" />
+
+                {/* Right Card */}
+                <div className="absolute inset-0 animate-float-medium" style={{ animationDelay: '100ms' }}>
+                  <div className="absolute top-0 left-1/2 -translate-x-1/2 mt-4 origin-bottom-left transform rotate-[15deg] transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] group-hover:rotate-[35deg] group-hover:-translate-x-[10%] drop-shadow-2xl">
+                    <WhotCard variant="back" className="w-32 sm:w-40 shadow-none rounded-[8px]" />
+                  </div>
                 </div>
-                <div className="absolute top-0 right-0 transform rotate-12 translate-x-[30px] drop-shadow-2xl transition-transform hover:-translate-y-2">
-                    <WhotCard variant="back" className="w-32 shadow-none rounded-[8px]" />
+
+                {/* Center Card - Main Hero Card */}
+                <div className="absolute inset-0 animate-float-fast" style={{ animationDelay: '75ms' }}>
+                  <div className="absolute top-0 left-1/2 -translate-x-1/2 mt-2 z-20 transform transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] group-hover:-translate-y-4 group-hover:scale-110 drop-shadow-[0_20px_50px_-12px_rgba(0,0,0,0.15)]">
+                    <WhotCard shape="Whot" number={20} className="w-36 sm:w-44 shadow-none border-[1px] border-white/10 rounded-[8px]" />
+                  </div>
                 </div>
-             </div>
-             <h1 className="text-4xl font-extrabold tracking-tight sm:text-5xl md:text-6xl lg:text-7xl" style={{ color: '#8b2037' }}>
-                Whot
-              </h1>
-              <p className="mt-4 max-w-[42rem] leading-normal text-muted-foreground sm:text-xl sm:leading-8 mx-auto">
-                The classic card game, fully encrypted and decentralized on Ethereum. 
-                Experience fair play with zero-knowledge shuffles.
-              </p>
+              </div>
+            </div>
+
+            {/* Main Copy */}
+            <h1 className="font-serif text-2xl sm:text-4xl md:text-5xl text-gray-900 leading-[1.1] mb-4 sm:mb-6 max-w-2xl mx-auto tracking-tight">
+              The classic card game, <br/>
+              <span className="italic text-[var(--whot-red)]">reimagined</span> on chain.
+            </h1>
+
+            <p className="text-gray-500 text-sm sm:text-lg md:text-xl mb-6 sm:mb-10 max-w-xl mx-auto font-light leading-relaxed px-2">
+              Fully encrypted and decentralized. Experience fair play with zero-knowledge shuffles and provable randomness.
+            </p>
+
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center px-4 sm:px-0">
+               <Button size="lg" className="h-11 sm:h-12 px-6 sm:px-8 rounded-full text-sm sm:text-base shadow-lg shadow-primary/25 hover:shadow-primary/40 transition-shadow" onClick={() => setShowCreate(true)}>
+                  <Plus className="mr-2 h-4 w-4 sm:h-5 sm:w-5" /> Start New Game
+               </Button>
+               <Button size="lg" variant="outline" className="h-11 sm:h-12 px-6 sm:px-8 rounded-full text-sm sm:text-base bg-background/50 backdrop-blur border-primary/20 hover:border-primary/50" onClick={() => {
+                  document.getElementById('games-feed')?.scrollIntoView({ behavior: 'smooth' })
+               }}>
+                  See Open Games
+               </Button>
+            </div>
           </div>
-          
-          <div className="flex gap-4 animate-in fade-in slide-in-from-bottom-8 duration-700 delay-150">
-             <Button size="lg" className="h-12 px-8 rounded-full text-base shadow-lg shadow-primary/25 hover:shadow-primary/40 transition-shadow" onClick={() => setShowCreate(true)}>
-                <Plus className="mr-2 h-5 w-5" /> Start New Game
-             </Button>
-             <Button size="lg" variant="outline" className="h-12 px-8 rounded-full text-base bg-background/50 backdrop-blur border-primary/20 hover:border-primary/50" onClick={() => {
-                document.getElementById('games-feed')?.scrollIntoView({ behavior: 'smooth' })
-             }}>
-                See Open Games
-             </Button>
-          </div>
-        </section>
 
         {/* Create Game Modal / Section */}
         {showCreate && (
@@ -319,21 +332,21 @@ export function NewHome() {
         )}
 
         {/* Game Feed */}
-        <section id="games-feed" className="mx-auto max-w-3xl space-y-6">
-            <div className="flex items-center justify-between">
+        <section id="games-feed" className="mx-auto max-w-3xl space-y-4 sm:space-y-6 px-2 sm:px-0">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
                      <div className="flex items-center gap-2">
-                        <h2 className="text-2xl font-bold tracking-tight">Created Games</h2>
+                        <h2 className="text-xl sm:text-2xl font-bold tracking-tight">Created Games</h2>
                         {isFeedLoading ? <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" /> : null}
                      </div>
-                     <p className="text-muted-foreground">Join an existing game to start playing.</p>
+                     <p className="text-sm sm:text-base text-muted-foreground">Join an existing game to start playing.</p>
                 </div>
-                <Card className="p-1 px-3 bg-secondary/30 border-0 flex items-center gap-2">
+                <Card className="p-1 px-3 bg-secondary/30 border-0 flex items-center gap-2 self-start sm:self-auto">
                     <Input 
                         placeholder="Join by ID..." 
                         value={joinId} 
                         onChange={(e) => setJoinId(e.target.value)}
-                        className="bg-transparent border-none h-8 w-32 focus-visible:ring-0 placeholder:text-muted-foreground/50"
+                        className="bg-transparent border-none h-8 w-24 sm:w-32 focus-visible:ring-0 placeholder:text-muted-foreground/50 text-sm"
                     />
                     <div className="h-4 w-px bg-border mx-1" />
                     <Button size="sm" variant="ghost" className="h-7 px-2 hover:bg-background" onClick={handleJoin} disabled={!joinId}>
@@ -373,18 +386,16 @@ export function NewHome() {
                                         </span>
                                     </CardTitle>
                                 </CardHeader>
-                                <CardContent>
-                                    <div className="flex items-center gap-3 mt-2">
+                                <CardContent className="pt-0">
+                                    <div className="flex items-center gap-3 sm:gap-4">
                                         {game.callCard ? (
-                                             <div className="scale-75 origin-left">
-                                                <WhotCard shape={describeCard(game.callCard)} number={game.callCard & 0x1f} className="w-12 h-16 shadow-sm" />
-                                             </div>
+                                             <WhotCard shape={describeCard(game.callCard)} number={game.callCard & 0x1f} className="w-10 sm:w-14 shadow-sm rounded-md shrink-0" />
                                         ) : (
-                                            <div className="w-12 h-16 bg-secondary rounded border border-dashed flex items-center justify-center text-xs text-muted-foreground">
+                                            <div className="w-10 sm:w-14 h-14 sm:h-20 bg-secondary/50 rounded-md border border-dashed flex items-center justify-center text-base sm:text-lg font-bold text-muted-foreground/50 shrink-0">
                                                 ?
                                             </div>
                                         )}
-                                        <div className="text-sm">
+                                        <div className="text-sm flex-1">
                                             <p className="font-medium">
                                                 {game.callCard ? "In Progress" : "Waiting for players"}
                                             </p>
@@ -392,11 +403,9 @@ export function NewHome() {
                                                 Turn: Player {game.playerTurnIdx}
                                             </p>
                                         </div>
-                                        <div className="ml-auto">
-                                            <Button size="icon" variant="secondary" className="rounded-full h-8 w-8">
-                                                <ArrowRight className="h-4 w-4" />
-                                            </Button>
-                                        </div>
+                                        <Button size="icon" variant="secondary" className="rounded-full h-8 w-8 shrink-0">
+                                            <ArrowRight className="h-4 w-4" />
+                                        </Button>
                                     </div>
                                 </CardContent>
                             </Card>

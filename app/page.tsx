@@ -28,17 +28,18 @@ export default function Page() {
   if (!mounted) return <div className="min-h-screen bg-background" />
 
   return (
-    <div className="relative">
+    <div className="relative overflow-x-hidden">
       {uiMode === "classic" ? <ClassicHome /> : <NewHome />}
 
-      <div className="fixed bottom-4 right-4 z-50">
+      <div className="fixed bottom-3 right-3 sm:bottom-4 sm:right-4 z-50 max-w-[calc(100vw-24px)]">
         <Button
-          className="shadow-lg rounded-full opacity-50 hover:opacity-100 transition-opacity text-xs"
+          className="shadow-lg rounded-full opacity-40 hover:opacity-100 transition-opacity text-[10px] sm:text-xs px-2.5 sm:px-3 h-7 sm:h-8"
           size="sm"
           variant="secondary"
           onClick={toggleMode}
         >
-          Switch to {uiMode === "classic" ? "New UI" : "Classic"}
+          <span className="hidden sm:inline">Switch to </span>
+          {uiMode === "classic" ? "New" : "Classic"}
         </Button>
       </div>
     </div>
