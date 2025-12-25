@@ -39,6 +39,7 @@ type ShapeTemplate = {
   shapeIds: string[]
   topText: FaceTextSpec
   bottomText: FaceTextSpec
+  decorText?: { top: FaceTextSpec; bottom: FaceTextSpec; multiplier: number }
 }
 
 const WHOT_SHAPE_TEMPLATES: Record<Exclude<CardShape, "Whot">, ShapeTemplate> = {
@@ -73,9 +74,15 @@ const WHOT_SHAPE_TEMPLATES: Record<Exclude<CardShape, "Whot">, ShapeTemplate> = 
   Star: {
     offsetX: 437.58332,
     offsetY: 99.8934,
-    shapeIds: ["path37", "path162", "path163"],
+    shapeIds: ["path37", "g164", "g163"],
     topText: { x: 467.16757, y: 140.82562, transform: "scale(0.95120444,1.0512987)" },
     bottomText: { x: -659.48468, y: -343.65518, transform: "scale(-0.95120444,-1.0512987)" },
+    // Exact positions from original SVG decoration text
+    decorText: {
+      top: { x: 323.16, y: 43.03, transform: "rotate(180,471.18941,187.57586)" },
+      bottom: { x: 455.16, y: 179.03, transform: "translate(40)" },
+      multiplier: 2,
+    },
   },
 }
 
@@ -183,6 +190,37 @@ export function WhotCard({
               >
                 {faceNumber}
               </text>
+              {/* Decoration text for Star cards (2x number) */}
+              {faceTemplate.decorText && (
+                <>
+                  {/* Top-left decoration */}
+                  <text
+                    x={faceTemplate.decorText.top.x}
+                    y={faceTemplate.decorText.top.y}
+                    transform={faceTemplate.decorText.top.transform}
+                    fontFamily="Arial, sans-serif"
+                    fontWeight="bold"
+                    fontSize="17"
+                    fill="#ffffff"
+                    textAnchor="start"
+                  >
+                    {Number(faceNumber) * faceTemplate.decorText.multiplier}
+                  </text>
+                  {/* Bottom-right decoration */}
+                  <text
+                    x={faceTemplate.decorText.bottom.x}
+                    y={faceTemplate.decorText.bottom.y}
+                    transform={faceTemplate.decorText.bottom.transform}
+                    fontFamily="Arial, sans-serif"
+                    fontWeight="bold"
+                    fontSize="17"
+                    fill="#ffffff"
+                    textAnchor="start"
+                  >
+                    {Number(faceNumber) * faceTemplate.decorText.multiplier}
+                  </text>
+                </>
+              )}
             </g>
           ) : null}
         </svg>
