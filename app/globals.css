@@ -2,28 +2,39 @@
 
 @import "tw-animate-css";
 
+/* Google Fonts - Playfair Display & DM Sans */
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap');
+
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  --background: oklch(0.98 0 0);
-  --foreground: oklch(0.15 0.02 19.5);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.15 0.02 19.5);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.15 0.02 19.5);
-  --primary: #570000;
-  --primary-foreground: oklch(0.985 0 0);
+  /* Whot Brand Colors */
+  --whot-bg: #F9F9F7;
+  --whot-red: #691B24;
+  --whot-red-hover: #8A2430;
+  --whot-text: #1A1A1A;
+  --whot-gray: #A0A0A0;
+  --whot-card: #FFFFFF;
+
+  --background: #F9F9F7;
+  --foreground: #1A1A1A;
+  --card: #FFFFFF;
+  --card-foreground: #1A1A1A;
+  --popover: #FFFFFF;
+  --popover-foreground: #1A1A1A;
+  --primary: #691B24;
+  --primary-foreground: #FFFFFF;
   --secondary: oklch(0.96 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
+  --secondary-foreground: #1A1A1A;
   --muted: oklch(0.96 0 0);
-  --muted-foreground: oklch(0.556 0 0);
+  --muted-foreground: #A0A0A0;
   --accent: oklch(0.96 0 0);
-  --accent-foreground: oklch(0.205 0 0);
+  --accent-foreground: #1A1A1A;
   --destructive: oklch(0.577 0.245 27.325);
   --destructive-foreground: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: #570000;
+  --border: #E5E5E5;
+  --input: #E5E5E5;
+  --ring: #691B24;
   --chart-1: oklch(0.646 0.222 41.116);
   --chart-2: oklch(0.6 0.118 184.704);
   --chart-3: oklch(0.398 0.07 227.392);
@@ -122,5 +133,43 @@
   }
   body {
     @apply bg-background text-foreground;
+    font-family: "DM Sans", sans-serif;
   }
+}
+
+/* Whot Grid Background */
+.bg-grid {
+  background-size: 40px 40px;
+  background-image: linear-gradient(to right, rgba(0,0,0,0.03) 1px, transparent 1px),
+                    linear-gradient(to bottom, rgba(0,0,0,0.03) 1px, transparent 1px);
+  mask-image: linear-gradient(to bottom, black 60%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to bottom, black 60%, transparent 100%);
+}
+
+/* Floating animations */
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+}
+
+.animate-float-slow {
+  animation: float 6s ease-in-out infinite;
+}
+
+.animate-float-medium {
+  animation: float 5s ease-in-out infinite;
+}
+
+.animate-float-fast {
+  animation: float 4s ease-in-out infinite;
+}
+
+/* Serif font utility */
+.font-serif {
+  font-family: "Playfair Display", serif;
+}
+
+/* Sans font utility */
+.font-sans {
+  font-family: "DM Sans", sans-serif;
 }
