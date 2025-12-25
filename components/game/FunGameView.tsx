@@ -62,6 +62,8 @@ type FunGameViewProps = {
   canExecutePending: boolean
   executePending: boolean
   breakPending: boolean
+  needsProofRegeneration: boolean
+  handleRegenerateProof: () => void
   handleExecute: (actionOverride?: number) => void
   handleBreakCommitment: () => void
   joinHandler: () => void
@@ -136,6 +138,8 @@ export function FunGameView({
   canExecutePending,
   executePending,
   breakPending,
+  needsProofRegeneration,
+  handleRegenerateProof,
   handleExecute,
   handleBreakCommitment,
   joinHandler,
@@ -424,6 +428,17 @@ export function FunGameView({
                       {executePending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
                       Execute {pendingActionLabel}
                     </Button>
+                    {needsProofRegeneration ? (
+                      <Button
+                        size="sm"
+                        variant="secondary"
+                        onClick={handleRegenerateProof}
+                        disabled={isDecrypting}
+                      >
+                        {isDecrypting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                        Regenerate Proof
+                      </Button>
+                    ) : null}
                     <Button
                       size="sm"
                       variant="outline"
@@ -932,6 +947,17 @@ export function FunGameView({
                       {executePending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
                       Execute {pendingActionLabel}
                     </Button>
+                    {needsProofRegeneration ? (
+                      <Button
+                        size="sm"
+                        variant="secondary"
+                        onClick={handleRegenerateProof}
+                        disabled={isDecrypting}
+                      >
+                        {isDecrypting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                        Regenerate Proof
+                      </Button>
+                    ) : null}
                     <Button
                       size="sm"
                       variant="outline"

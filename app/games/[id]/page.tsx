@@ -420,6 +420,7 @@ export default function GamePage() {
   }, [me?.hand0, me?.hand1])
   const hasStoredProof = Boolean(pendingProofData)
   const hasCommittedOnChain = commitmentHash !== 0n
+  const needsProofRegeneration = hasCommittedOnChain && !hasStoredProof
   const hasPendingCommit = hasStoredProof || hasCommittedOnChain
   const actionLabel = ACTIONS.find((item) => item.value === action)?.label ?? "Play"
   const pendingActionLabel =
@@ -432,7 +433,7 @@ export default function GamePage() {
       : pendingProofData
         ? `Proof ready for idx ${pendingCardIndex ?? "?"}`
         : hasCommittedOnChain
-          ? "Committed move detected. Break or re-commit to proceed."
+          ? "Commitment found. Regenerate proof to execute."
           : "No committed card yet."
   const canCommitSelected = Boolean(
     isConnected &&
@@ -490,7 +491,7 @@ export default function GamePage() {
     // The cache will be re-validated when user reveals or on auto-reveal
     setHandStale(true)
   }, [me?.deckMap?.toString(), me?.hand0?.toString(), me?.hand1?.toString(), address])
-  // Ref to track if we've attempted to load proof from cache for this game
+  // Ref to track if we've successfully loaded proof from cache for this game
   const proofLoadedRef = useRef<string | null>(null)
   
   // Load proof from cache ONCE when commitment hash becomes available
@@ -498,31 +499,33 @@ export default function GamePage() {
     if (!address || !gameId) return
     // Don't do anything while still loading
     if (loadingCommitment) return
-    // Already loaded for this game/address combo
+    
     const loadKey = `${gameKey}:${address}`
-    if (proofLoadedRef.current === loadKey) return
     
     if (hasCommittedOnChain) {
-      // Has commitment - try to load proof from cache
-      if (!pendingProofData) {
+      // Has commitment - try to load proof from cache (only once per loadKey)
+      if (proofLoadedRef.current !== loadKey && !pendingProofData) {
         const cached = loadPendingCommit(chainId, gameKey, address)
         if (cached) {
           setPendingProofData(cached.proofData)
           setPendingCardIndex(cached.cardIndex)
           setPendingAction(cached.action)
         }
+        // Mark as loaded whether we found cache or not
+        proofLoadedRef.current = loadKey
       }
-      // Mark as loaded whether we found cache or not
-      proofLoadedRef.current = loadKey
     } else {
       // No commitment on chain - clear any stale proof state
+      // Reset the ref so we can load again if commitment appears later
+      if (proofLoadedRef.current === loadKey) {
+        proofLoadedRef.current = null
+      }
       if (pendingProofData || pendingCardIndex !== null || pendingAction !== null) {
         setPendingProofData(null)
         setPendingCardIndex(null)
         setPendingAction(null)
       }
       clearPendingCommit(chainId, gameKey, address)
-      proofLoadedRef.current = loadKey
     }
   }, [address, chainId, gameId, gameKey, loadingCommitment, hasCommittedOnChain, pendingProofData, pendingCardIndex, pendingAction])
 
@@ -799,6 +802,79 @@ export default function GamePage() {
     }
   }
 
+  // Regenerate proof from existing commitment (no new transaction needed)
+  const handleRegenerateProof = async () => {
+    if (!gameId || !publicClient || !address) return
+    if (!hasCommittedOnChain) {
+      toast.error("No commitment found on-chain")
+      return
+    }
+    if (fheStatus !== "ready") {
+      toast.error("FHE relayer not ready", { description: fheError?.message })
+      return
+    }
+    setIsDecrypting(true)
+    try {
+      // Fetch the MoveCommitted event to get encrypted card and index
+      const logs = await publicClient.getLogs({
+        address: contracts.cardEngine as Address,
+        event: {
+          type: "event",
+          name: "MoveCommitted",
+          inputs: [
+            { indexed: true, name: "gameId", type: "uint256" },
+            { indexed: false, name: "cardToCommit", type: "bytes32" },
+            { indexed: false, name: "cardIndex", type: "uint8" },
+          ],
+        },
+        args: { gameId },
+        fromBlock: "earliest",
+        toBlock: "latest",
+      })
+      // Get the most recent commitment for this game
+      const latestLog = logs[logs.length - 1]
+      if (!latestLog) {
+        throw new Error("MoveCommitted event not found")
+      }
+      const encryptedCard = latestLog.args.cardToCommit as `0x${string}`
+      const committedIdx = latestLog.args.cardIndex as number
+      if (!encryptedCard || committedIdx === undefined) {
+        throw new Error("Invalid commitment event data")
+      }
+      // Decrypt and generate proof
+      const decrypted = await publicDecrypt([encryptedCard])
+      const indexValue = Number(committedIdx)
+      if (!Number.isFinite(indexValue) || indexValue < 0 || indexValue > 255) {
+        throw new Error("Committed card index out of range")
+      }
+      const proofData = encodeAbiParameters(
+        [
+          { type: "bytes" },
+          { type: "bytes32" },
+          { type: "bytes" },
+          { type: "uint8" },
+        ],
+        [decrypted.decryptionProof, encryptedCard, decrypted.abiEncodedClearValues, indexValue],
+      ) as `0x${string}`
+      setPendingProofData(proofData)
+      setPendingCardIndex(indexValue)
+      setPendingAction(action) // Use current action selection
+      if (address) {
+        savePendingCommit(chainId, gameKey, address, {
+          proofData,
+          cardIndex: indexValue,
+          action,
+          updatedAt: Date.now(),
+        })
+      }
+      toast.success("Proof regenerated", { description: "You can now execute your move." })
+    } catch (err) {
+      toast.error("Failed to regenerate proof", { description: describeViemError(err) })
+    } finally {
+      setIsDecrypting(false)
+    }
+  }
+
   const handleCommitCard = async (index: number, actionOverride?: number) => {
     const nextAction = actionOverride ?? action
     if (!canCommitSelected) {
@@ -1030,6 +1106,8 @@ export default function GamePage() {
           canExecutePending={canExecutePending}
           executePending={executeMove.isPending}
           breakPending={breakCommitment.isPending}
+          needsProofRegeneration={needsProofRegeneration}
+          handleRegenerateProof={handleRegenerateProof}
           handleExecute={handleExecute}
           handleBreakCommitment={handleBreakCommitment}
           joinHandler={joinHandler}
