@@ -224,7 +224,7 @@ export function NewHome() {
                 {/* Center Card - Main Hero Card */}
                 <div className="absolute inset-0 animate-float-fast" style={{ animationDelay: '75ms' }}>
                   <div className="absolute top-0 left-1/2 -translate-x-1/2 mt-2 z-20 transform transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] group-hover:-translate-y-4 group-hover:scale-110 drop-shadow-[0_20px_50px_-12px_rgba(0,0,0,0.15)]">
-                    <WhotCard shape="Whot" number={20} className="w-36 sm:w-44 shadow-none border-[1px] border-white/10 rounded-[8px]" />
+                    <WhotCard shape="Whot" number={20} className="w-36 sm:w-44 shadow-none border-[1px] border-white/10 rounded-[13px]" />
                   </div>
                 </div>
               </div>
