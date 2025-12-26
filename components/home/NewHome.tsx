@@ -242,7 +242,7 @@ export function NewHome() {
 
             <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center px-4 sm:px-0">
                <Button size="lg" className="h-11 sm:h-12 px-6 sm:px-8 rounded-full text-sm sm:text-base shadow-lg shadow-primary/25 hover:shadow-primary/40 transition-shadow" onClick={() => setShowCreate(true)}>
-                  <Plus className="mr-2 h-4 w-4 sm:h-5 sm:w-5" /> Start New Game
+                  <Plus className="mr-2 h-4 w-4 sm:h-5 sm:w-5" /> Create New Game
                </Button>
                <Button size="lg" variant="outline" className="h-11 sm:h-12 px-6 sm:px-8 rounded-full text-sm sm:text-base bg-background/50 backdrop-blur border-primary/20 hover:border-primary/50" onClick={() => {
                   document.getElementById('games-feed')?.scrollIntoView({ behavior: 'smooth' })
