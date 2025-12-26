@@ -403,8 +403,8 @@ export function NewHome() {
                                                 Turn: Player {game.playerTurnIdx}
                                             </p>
                                         </div>
-                                        <Button size="icon" variant="secondary" className="rounded-full h-8 w-8 shrink-0">
-                                            <ArrowRight className="h-4 w-4" />
+                                        <Button size="icon" variant="secondary" className="rounded-full h-10 w-10 shrink-0 transition-all duration-300 group-hover:bg-[#8b2037] group-hover:text-white">
+                                            <ArrowRight className="h-5 w-5 transition-transform duration-300 group-hover:translate-x-0.5" />
                                         </Button>
                                     </div>
                                 </CardContent>
